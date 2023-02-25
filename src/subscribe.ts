@@ -1,5 +1,6 @@
-// cspell:words nothrow
-
+import {
+  createSpawn,
+} from './createSpawn';
 import {
   Logger,
 } from './Logger';
@@ -11,9 +12,6 @@ import {
   randomUUID,
 } from 'crypto';
 import path from 'node:path';
-import {
-  $,
-} from 'zx';
 
 const log = Logger.child({
   namespace: 'subscribe',
@@ -21,43 +19,6 @@ const log = Logger.child({
 
 type WatchmanEvent = {
   version: string,
-};
-
-const createSpawn = (taskId: string, triggerSignal: AbortSignal | null) => {
-  return (pieces: TemplateStringsArray, ...args: any[]) => {
-    // eslint-disable-next-line promise/prefer-await-to-then
-    const processPromise = $(pieces, ...args).nothrow();
-
-    // eslint-disable-next-line promise/prefer-await-to-then
-    processPromise.then((result) => {
-      if (result.exitCode === 0) {
-        return;
-      }
-
-      if (triggerSignal?.aborted) {
-        return;
-      }
-
-      log.error('task %s exited with an error', taskId);
-    });
-
-    if (triggerSignal) {
-      const kill = () => {
-        processPromise.kill();
-      };
-
-      triggerSignal.addEventListener('abort', kill, {
-        once: true,
-      });
-
-      // eslint-disable-next-line promise/prefer-await-to-then
-      processPromise.finally(() => {
-        triggerSignal.removeEventListener('abort', kill);
-      });
-    }
-
-    return processPromise;
-  };
 };
 
 export const subscribe = (
