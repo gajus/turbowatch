@@ -11,6 +11,16 @@ import {
   it,
 } from 'vitest';
 
+const createAbortController = () => {
+  const abortController = new AbortController();
+
+  setTimeout(() => {
+    abortController.abort();
+  }, 100);
+
+  return abortController;
+};
+
 it('rejects promise if Watchman "subscribe" command produces an error', async () => {
   const client = {
     command: () => {},
@@ -45,11 +55,7 @@ it('evaluates onChange', async () => {
 
   subscriptionMock.expects('onChange').once().resolves(null);
 
-  const abortController = new AbortController();
-
-  setTimeout(() => {
-    abortController.abort();
-  }, 100);
+  const abortController = createAbortController();
 
   const clientMock = sinon.mock(client);
 
@@ -83,17 +89,12 @@ it('throws if onChange produces an error', async () => {
 
   subscriptionMock.expects('onChange').rejects(new Error('foo'));
 
-  const abortController = new AbortController();
-
-  setTimeout(() => {
-    abortController.abort();
-  }, 100);
+  const abortController = createAbortController();
 
   const clientMock = sinon.mock(client);
 
   clientMock
     .expects('on')
-    .once()
     .callsFake((event, callback) => {
       callback({
         files: [],
@@ -118,11 +119,7 @@ it('reports first only for the first event', async () => {
 
   const onChange = subscriptionMock.expects('onChange').twice().resolves(null);
 
-  const abortController = new AbortController();
-
-  setTimeout(() => {
-    abortController.abort();
-  }, 100);
+  const abortController = createAbortController();
 
   const clientMock = sinon.mock(client);
 
