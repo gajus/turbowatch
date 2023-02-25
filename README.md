@@ -49,6 +49,10 @@ Watchrow can be used to automate any sort of operations that need to happen in r
 * You can run (and automatically restart) long-running processes (like your Node.js application)
 * You can build assets (like Docker images)
 
+## `spawn`
+
+The `spawn` function that is exposed by `ChangeEvent` is used to evaluate shell commands. Behind the scenes it uses [zx](https://github.com/google/zx). The reason Watchrow abstracts `zx` is to enable auto-termination of child-processes when triggers are configured to be `interruptible`.
+
 ## Expressions Cheat Sheet
 
 Expressions are used to match files. The most basic expression is [`match`](https://facebook.github.io/watchman/docs/expr/match.html) – it evaluates as true if a glob pattern matches the file, e.g.
