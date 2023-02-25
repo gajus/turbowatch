@@ -61,6 +61,10 @@ export const createSpawn = (taskId: string, triggerSignal: AbortSignal | null) =
       return result;
     }
 
+    if (triggerSignal?.aborted) {
+      return result;
+    }
+
     log.error('task %s exited with an error', taskId);
 
     throw new Error('Program exited with code ' + result.exitCode + '.');
