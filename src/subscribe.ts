@@ -2,15 +2,15 @@ import {
   createSpawn,
 } from './createSpawn';
 import {
+  generateUuid,
+} from './generateUuid';
+import {
   Logger,
 } from './Logger';
 import {
   type Trigger,
   type WatchmanClient,
 } from './types';
-import {
-  randomUUID,
-} from 'crypto';
 import path from 'node:path';
 import retry from 'p-retry';
 
@@ -126,7 +126,7 @@ export const subscribe = (
         }
       }
 
-      const taskId = randomUUID();
+      const taskId = generateUuid();
 
       const triggerSignal = controller?.signal ?? null;
 

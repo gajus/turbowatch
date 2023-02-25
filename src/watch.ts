@@ -1,4 +1,7 @@
 import {
+  generateUuid,
+} from './generateUuid';
+import {
   Logger,
 } from './Logger';
 import {
@@ -9,9 +12,6 @@ import {
   type ConfigurationInput,
   type JsonObject,
 } from './types';
-import {
-  randomUUID,
-} from 'crypto';
 import {
   Client,
 } from 'fb-watchman';
@@ -70,7 +70,7 @@ export const watch = (configurationInput: ConfigurationInput) => {
         subscriptions.push(
           subscribe(client, {
             expression: trigger.expression,
-            id: randomUUID(),
+            id: generateUuid(),
             interruptible: trigger.interruptible ?? true,
             name: trigger.name,
             onChange: trigger.onChange,
