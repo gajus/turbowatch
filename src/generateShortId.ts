@@ -2,6 +2,6 @@ import {
   randomUUID,
 } from 'crypto';
 
-export const generateUuid = (): string => {
+export const generateShortId = (): string => {
   return randomUUID().split('-')[0];
 };

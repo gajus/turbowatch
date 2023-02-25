@@ -2,8 +2,8 @@ import {
   createSpawn,
 } from './createSpawn';
 import {
-  generateUuid,
-} from './generateUuid';
+  generateShortId,
+} from './generateShortId';
 import {
   Logger,
 } from './Logger';
@@ -126,7 +126,7 @@ export const subscribe = (
         }
       }
 
-      const taskId = generateUuid();
+      const taskId = generateShortId();
 
       const triggerSignal = controller?.signal ?? null;
 

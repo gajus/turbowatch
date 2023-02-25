@@ -1,6 +1,6 @@
 import {
-  generateUuid,
-} from './generateUuid';
+  generateShortId,
+} from './generateShortId';
 import {
   Logger,
 } from './Logger';
@@ -70,7 +70,7 @@ export const watch = (configurationInput: ConfigurationInput) => {
         subscriptions.push(
           subscribe(client, {
             expression: trigger.expression,
-            id: generateUuid(),
+            id: generateShortId(),
             interruptible: trigger.interruptible ?? true,
             name: trigger.name,
             onChange: trigger.onChange,
