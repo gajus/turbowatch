@@ -69,6 +69,41 @@ it('evaluates onChange', async () => {
   expect(subscriptionMock.verify());
 });
 
+it('throws if onChange produces an error', async () => {
+  const client = {
+    command: () => {},
+    on: () => {},
+  } as unknown as WatchmanClient;
+  const trigger = {
+    id: 'foo',
+    onChange: () => {},
+  } as unknown as Trigger;
+
+  const subscriptionMock = sinon.mock(trigger);
+
+  subscriptionMock.expects('onChange').rejects(new Error('foo'));
+
+  const abortController = new AbortController();
+
+  setTimeout(() => {
+    abortController.abort();
+  }, 100);
+
+  const clientMock = sinon.mock(client);
+
+  clientMock
+    .expects('on')
+    .once()
+    .callsFake((event, callback) => {
+      callback({
+        files: [],
+        subscription: 'foo',
+      });
+    });
+
+  await expect(subscribe(client, trigger, abortController.signal)).rejects.toThrowError('foo');
+});
+
 it('reports first only for the first event', async () => {
   const client = {
     command: () => {},

@@ -191,6 +191,10 @@ export const subscribe = (
 
             activeTask = null;
           }
+        })
+        // eslint-disable-next-line promise/prefer-await-to-then
+        .catch((error) => {
+          reject(error);
         });
 
       // eslint-disable-next-line require-atomic-updates
