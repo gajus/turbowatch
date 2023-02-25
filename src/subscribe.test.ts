@@ -85,7 +85,7 @@ it('evaluates onChange', async () => {
   expect(subscriptionMock.verify());
 });
 
-it.only('waits for onChange to complete when { interruptible: false }', async () => {
+it('waits for onChange to complete when { interruptible: false }', async () => {
   const client = {
     command: () => {},
     on: () => {},
