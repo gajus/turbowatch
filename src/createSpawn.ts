@@ -29,14 +29,14 @@ export const createSpawn = (taskId: string, triggerSignal: AbortSignal | null) =
     (async () => {
       for await (const chunk of processPromise.stdout) {
         // eslint-disable-next-line no-console
-        console.log(prefixLines(chunk.toString(), taskId + ' > ').trimEnd());
+        console.log(prefixLines(chunk.toString().trimEnd(), taskId + ' > '));
       }
     })();
 
     (async () => {
       for await (const chunk of processPromise.stderr) {
         // eslint-disable-next-line no-console
-        console.error(prefixLines(chunk.toString(), taskId + ' > ').trimEnd());
+        console.error(prefixLines(chunk.toString().trimEnd(), taskId + ' > '));
       }
     })();
 
