@@ -11,10 +11,34 @@ const log = Logger.child({
   namespace: 'createSpawn',
 });
 
+const prefixLines = (subject: string, prefix: string): string => {
+  const response: string[] = [];
+
+  for (const fragment of subject.split('\n')) {
+    response.push(prefix + fragment);
+  }
+
+  return response.join('\n');
+};
+
 export const createSpawn = (taskId: string, triggerSignal: AbortSignal | null) => {
   return async (pieces: TemplateStringsArray, ...args: any[]) => {
     // eslint-disable-next-line promise/prefer-await-to-then
-    const processPromise = $(pieces, ...args).nothrow();
+    const processPromise = $(pieces, ...args).nothrow().quiet();
+
+    (async () => {
+      for await (const chunk of processPromise.stdout) {
+        // eslint-disable-next-line no-console
+        console.log(prefixLines(chunk.toString(), taskId + ' > '));
+      }
+    })();
+
+    (async () => {
+      for await (const chunk of processPromise.stderr) {
+        // eslint-disable-next-line no-console
+        console.error(prefixLines(chunk.toString(), taskId + ' > '));
+      }
+    })();
 
     if (triggerSignal) {
       const kill = () => {
