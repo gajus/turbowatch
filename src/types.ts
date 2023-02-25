@@ -1,7 +1,7 @@
 // cspell:words idirname imatch iname ipcre pcre wholename oclock
 
 import {
-  type Shell,
+  type ProcessOutput,
 } from 'zx';
 
 export {
@@ -120,7 +120,7 @@ export type ChangeEvent = {
   files: readonly File[],
   first: boolean,
   signal: AbortSignal | null,
-  spawn: Shell,
+  spawn: (pieces: TemplateStringsArray, ...args: any[]) => Promise<ProcessOutput>,
   warning: string | null,
 };
 
