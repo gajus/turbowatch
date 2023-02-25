@@ -41,7 +41,7 @@
   "name": "watchrow",
   "repository": {
     "type": "git",
-    "url": "git@github.com:gajus/watchrow.git"
+    "url": "https://github.com/gajus/watchrow"
   },
   "scripts": {
     "build": "rm -fr ./dist && tsc --noEmit false",
