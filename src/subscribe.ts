@@ -151,8 +151,12 @@ export const subscribe = (
 
       const taskPromise = retry(onChange, {
         ...trigger.retry,
-        onFailedAttempt: () => {
-          log.warn('retrying task %s (%s)...', trigger.name, taskId);
+        onFailedAttempt: ({
+          retriesLeft,
+        }) => {
+          if (retriesLeft > 0) {
+            log.warn('retrying task %s (%s)...', trigger.name, taskId);
+          }
         },
       })
         // eslint-disable-next-line promise/prefer-await-to-then

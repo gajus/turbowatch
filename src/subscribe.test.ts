@@ -5,11 +5,20 @@ import {
   type Trigger,
   type WatchmanClient,
 } from './types';
+import {
+  setTimeout,
+} from 'node:timers';
 import * as sinon from 'sinon';
 import {
   expect,
   it,
 } from 'vitest';
+
+const wait = (time: number) => {
+  return new Promise((resolve) => {
+    setTimeout(resolve, time);
+  });
+};
 
 const createAbortController = () => {
   const abortController = new AbortController();
@@ -74,6 +83,61 @@ it('evaluates onChange', async () => {
 
   expect(clientMock.verify());
   expect(subscriptionMock.verify());
+});
+
+it.only('waits for onChange to complete when { interruptible: false }', async () => {
+  const client = {
+    command: () => {},
+    on: () => {},
+  } as unknown as WatchmanClient;
+  const trigger = {
+    id: 'foo',
+    interruptible: false,
+    name: 'foo',
+    onChange: () => {},
+    retry: {
+      retries: 0,
+    },
+  } as unknown as Trigger;
+
+  const abortController = new AbortController();
+
+  const triggerMock = sinon.mock(trigger);
+
+  const onChange = triggerMock.expects('onChange').twice();
+
+  let completed = false;
+
+  onChange.onFirstCall().callsFake(async () => {
+    await wait(100);
+
+    completed = true;
+  });
+
+  onChange.onSecondCall().callsFake(() => {
+    expect(completed).toBe(true);
+
+    abortController.abort();
+  });
+
+  const clientMock = sinon.mock(client);
+
+  clientMock
+    .expects('on')
+    .callsFake((event, callback) => {
+      callback({
+        files: [],
+        subscription: 'foo',
+      });
+      callback({
+        files: [],
+        subscription: 'foo',
+      });
+    });
+
+  await subscribe(client, trigger, abortController.signal);
+
+  expect(onChange.callCount).toBe(2);
 });
 
 it('throws if onChange produces an error', async () => {
@@ -147,7 +211,7 @@ it('retries failing routines', async () => {
   await subscribe(client, trigger, abortController.signal);
 });
 
-it('reports first only for the first event', async () => {
+it('reports { first: true } only for the first event', async () => {
   const client = {
     command: () => {},
     on: () => {},
