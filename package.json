@@ -45,9 +45,9 @@
   "scripts": {
     "build": "rm -fr ./dist && tsc --noEmit false",
     "dev": "tsc --watch",
+    "lint:cspell": "cspell './**/*.{ts,tsx}' --no-progress --gitignore",
     "lint:eslint": "eslint --color .",
     "lint:tsc": "tsc --noEmit",
-    "lint:cspell": "cspell './**/*.{ts,tsx}' --no-progress --gitignore",
     "test:vitest": "vitest --passWithNoTests"
   },
   "types": "./dist/index.d.ts"
