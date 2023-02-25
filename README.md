@@ -42,17 +42,12 @@ ChangeEvent;
 
 Then simply run the script using `node`.
 
-## Use cases
+## Use Cases
 
 Watchrow can be used to automate any sort of operations that need to happen in response to files changing, e.g.,
 
 * You can run (and automatically restart) long-running processes (like your Node.js application)
 * You can build assets (like Docker images)
-
-## Features
-
-* Restarts long-running applications
-* Runs commands concurrently
 
 ## Expressions Cheat Sheet
 
