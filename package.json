@@ -47,6 +47,7 @@
     "dev": "tsc --watch",
     "lint:eslint": "eslint --color .",
     "lint:tsc": "tsc --noEmit",
+    "lint:cspell": "cspell './**/*.{ts,tsx}' --no-progress --gitignore",
     "test:vitest": "vitest --passWithNoTests"
   },
   "types": "./dist/index.d.ts"
