@@ -16,7 +16,7 @@ void watch({
       // The expression is applied to the list of changed files to generate the set of files
       // that are relevant to this trigger. If no files match, the trigger will not be invoked.
       // https://facebook.github.io/watchman/docs/expr/allof.html
-      expression: ['match', '*.ts'],
+      expression: ['match', '*.ts', 'basename'],
       // Determines what to do if a new file change is detected while the trigger is executing.
       // If {interruptible: true}, then AbortSignal will abort the current onChange routine.
       // If {interruptible: false}, then Watchrow will wait until the onChange routine completes.
