@@ -22,6 +22,9 @@ void watch({
       // If {interruptible: false}, then Watchrow will wait until the onChange routine completes.
       // Defaults to true.
       interruptible: false,
+      // Name of the trigger. Used for debugging
+      // Must match /^[a-z0-9-_]+$/ pattern and must be unique.
+      name: 'build',
       // Routine that is executed when file changes are detected.
       onChange: async ({ spawn }: ChangeEvent) => {
         await spawn`tsc`;
@@ -176,6 +179,7 @@ void watch({
     {
       expression: ['allof', ['match', '*.ts']],
       interruptible: false,
+      name: 'sleep',
       onChange: async ({ signal }) => {
         await interrupt($`sleep 30`, signal);
       },

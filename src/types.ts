@@ -144,12 +144,14 @@ type Retry = {
 
 /**
  * @property expression watchman expression, e.g. https://facebook.github.io/watchman/docs/expr/allof.html
- * @property onChange Routine that is executed when file changes are detected.
  * @property interruptible Sends abort signal to an ongoing routine, if any. Otherwise, waits for routine to finish. (default: true)
+ * @property name Name of the trigger. Used for debugging. Must match /^[a-z0-9-_]+$/ pattern and must be unique.
+ * @property onChange Routine that is executed when file changes are detected.
  */
 type TriggerInput = {
   expression: Expression,
   interruptible?: boolean,
+  name: string,
   onChange: OnChangeEventHandler,
   retry?: Retry,
 };
@@ -158,6 +160,7 @@ export type Trigger = {
   expression: Expression,
   id: string,
   interruptible: boolean,
+  name: string,
   onChange: OnChangeEventHandler,
   relativePath: string,
   retry: Retry,

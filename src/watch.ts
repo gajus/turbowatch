@@ -72,6 +72,7 @@ export const watch = (configurationInput: ConfigurationInput) => {
             expression: trigger.expression,
             id: randomUUID(),
             interruptible: trigger.interruptible ?? true,
+            name: trigger.name,
             onChange: trigger.onChange,
             relativePath: response.relative_path,
             retry: trigger.retry ?? {

@@ -48,6 +48,7 @@ it('evaluates onChange', async () => {
   } as unknown as WatchmanClient;
   const trigger = {
     id: 'foo',
+    name: 'foo',
     onChange: () => {},
   } as unknown as Trigger;
 
@@ -82,6 +83,7 @@ it('throws if onChange produces an error', async () => {
   } as unknown as WatchmanClient;
   const trigger = {
     id: 'foo',
+    name: 'foo',
     onChange: () => {},
     retry: {
       retries: 0,
@@ -115,6 +117,7 @@ it('retries failing routines', async () => {
   } as unknown as WatchmanClient;
   const trigger = {
     id: 'foo',
+    name: 'foo',
     onChange: () => {},
     retry: {
       retries: 1,

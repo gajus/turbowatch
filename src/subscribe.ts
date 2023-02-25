@@ -100,7 +100,7 @@ export const subscribe = (
 
       if (activeTask) {
         if (trigger.interruptible) {
-          log.warn('aborted task %s', activeTask.id);
+          log.warn('aborted task %s (%s)', trigger.name, activeTask.id);
 
           if (!activeTask.abortController) {
             throw new Error('Expected abort controller to be set');
@@ -110,7 +110,7 @@ export const subscribe = (
 
           activeTask = null;
         } else {
-          log.warn('waiting for %s task to complete', activeTask.id);
+          log.warn('waiting for %s (%s) task to complete', trigger.name, activeTask.id);
 
           if (activeTask.queued) {
             return;
@@ -152,13 +152,13 @@ export const subscribe = (
       const taskPromise = retry(onChange, {
         ...trigger.retry,
         onFailedAttempt: () => {
-          log.warn('retrying task %s...', taskId);
+          log.warn('retrying task %s (%s)...', trigger.name, taskId);
         },
       })
         // eslint-disable-next-line promise/prefer-await-to-then
         .then(() => {
           if (taskId === activeTask?.id) {
-            log.trace('completed task %s', activeTask.id);
+            log.trace('completed task %s (%s)', trigger.name, taskId);
 
             activeTask = null;
           }
@@ -176,7 +176,7 @@ export const subscribe = (
         queued: false,
       };
 
-      log.trace('started task %s', activeTask.id);
+      log.trace('started task %s (%s)', trigger.name, taskId);
     });
   });
 };
