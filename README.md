@@ -150,6 +150,18 @@ void watch({
 });
 ```
 
+### Logging
+
+Watchrow uses [Roarr](https://github.com/gajus/roarr) logger.
+
+Export `ROARR_LOG=true` environment variable to enable log printing to `stdout`.
+
+Use [@roarr/cli](https://github.com/gajus/roarr-cli) to pretty-print logs.
+
+```bash
+tsx watchrow.ts | roarr
+```
+
 ## FAQ
 
 ### Why not use Nodemon?
