@@ -3,7 +3,7 @@ node_modules
 *.log
 .*
 !.eslintignore
-!.eslintrc
+!.eslintrc.js
 !.github
 !.gitignore
 !.npmignore
