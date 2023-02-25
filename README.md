@@ -42,6 +42,10 @@ ChangeEvent;
 
 Then simply run the script using `node`.
 
+## Motivation
+
+To have a single tool for watching files for changes and orchestrating all build tasks.
+
 ## Use Cases
 
 Watchrow can be used to automate any sort of operations that need to happen in response to files changing, e.g.,
