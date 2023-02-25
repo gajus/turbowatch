@@ -1,0 +1,17 @@
+dictionaries:
+  - companies
+  - css
+  - en_us
+  - en-gb
+  - fullstack
+  - html
+  - lorem-ipsum
+  - sql
+  - typescript
+ignoreRegExpList:
+  - /.*[0-9].*/
+language: en
+version: '0.2'
+words:
+  - gajus
+  - watchrow

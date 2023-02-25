@@ -1,0 +1,11 @@
+dist
+node_modules
+*.log
+.*
+!.eslintignore
+!.eslintrc
+!.github
+!.gitignore
+!.npmignore
+!.README
+!.releaserc

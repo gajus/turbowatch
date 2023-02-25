@@ -1,0 +1,39 @@
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    environment: release
+    name: Test
+    steps:
+      - name: setup repository
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: setup node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: "18"
+          cache: "npm"
+      - run: npm ci
+      - run: npm run lint:eslint
+      - run: npm run lint:tsc
+      - run: npm run lint:cspell
+      - run: npm run test:vitest
+      - run: npm run build
+    timeout-minutes: 10
+name: Test and build
+on:
+  pull_request:
+    branches:
+      - main
+    paths-ignore:
+      - ".editorconfig"
+      - ".husky/**"
+      - ".lintstagedrc.js"
+      - ".mergify.yml"
+      - ".nvmrc"
+      - "README.md"
+    types:
+      - opened
+      - synchronize
+      - reopened
+      - ready_for_review
