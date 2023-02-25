@@ -25,13 +25,6 @@ on:
   pull_request:
     branches:
       - main
-    paths-ignore:
-      - ".editorconfig"
-      - ".husky/**"
-      - ".lintstagedrc.js"
-      - ".mergify.yml"
-      - ".nvmrc"
-      - "README.md"
     types:
       - opened
       - synchronize
