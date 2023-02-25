@@ -6,6 +6,7 @@
   },
   "dependencies": {
     "fb-watchman": "^2.0.2",
+    "p-retry": "^4.6.2",
     "roarr": "^7.14.3",
     "serialize-error": "^11.0.0",
     "zx": "^7.1.1"

@@ -110,6 +110,7 @@ type File = {
 };
 
 /**
+ * @property attempt Attempt number (starting with 0) indicating if trigger was retried.
  * @property files Describes the list of files that changed.
  * @property first Identifies if this is the first event.
  * @property signal Instance of AbortSignal used to signal when the routine should be aborted.
@@ -117,6 +118,7 @@ type File = {
  * @property warning Watchman warnings.
  */
 export type ChangeEvent = {
+  attempt: number,
   files: readonly File[],
   first: boolean,
   signal: AbortSignal | null,
@@ -128,6 +130,19 @@ export type ChangeEvent = {
 type OnChangeEventHandler = (event: ChangeEvent) => Promise<any>;
 
 /**
+ * @property factor The exponential factor to use. Default is 2.
+ * @property maxTimeout The maximum number of milliseconds between two retries. Default is Infinity.
+ * @property minTimeout The number of milliseconds before starting the first retry. Default is 1000.
+ * @property retries The maximum amount of times to retry the operation. Default is 10. Seting this to 1 means do it once, then retry it once.
+ */
+type Retry = {
+  factor?: number,
+  maxTimeout?: number,
+  minTimeout?: number,
+  retries?: number,
+};
+
+/**
  * @property expression watchman expression, e.g. https://facebook.github.io/watchman/docs/expr/allof.html
  * @property onChange Routine that is executed when file changes are detected.
  * @property interruptible Sends abort signal to an ongoing routine, if any. Otherwise, waits for routine to finish. (default: true)
@@ -136,6 +151,7 @@ type TriggerInput = {
   expression: Expression,
   interruptible?: boolean,
   onChange: OnChangeEventHandler,
+  retry?: Retry,
 };
 
 export type Trigger = {
@@ -144,6 +160,7 @@ export type Trigger = {
   interruptible: boolean,
   onChange: OnChangeEventHandler,
   relativePath: string,
+  retry: Retry,
   watch: string,
 };
 

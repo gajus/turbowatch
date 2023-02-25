@@ -32,6 +32,7 @@ void watch({
 });
 
 /**
+ * @property attempt Attempt number (starting with 0) indicating if trigger was retried.
  * @property files Describes the list of files that changed.
  * @property first Identifies if this is the first event.
  * @property signal Instance of AbortSignal used to signal when the routine should be aborted.
@@ -97,6 +98,39 @@ Match all files with `*.ts` extension, but exclude `index.ts`:
 This is the gist behind Watchman expressions. However, there are many more expressions. Inspect `Expression` type for further guidance or refer to [Watchman documentation](https://facebook.github.io/watchman/docs/install.html).
 
 ## Recipes
+
+### Retrying failing triggers
+
+Retries are configured by passing a `retry` property to the trigger configuration.
+
+```ts
+/**
+ * @property factor The exponential factor to use. Default is 2.
+ * @property maxTimeout The maximum number of milliseconds between two retries. Default is Infinity.
+ * @property minTimeout The number of milliseconds before starting the first retry. Default is 1000.
+ * @property retries The maximum amount of times to retry the operation. Default is 10. Seting this to 1 means do it once, then retry it once.
+ */
+type Retry = {
+  factor?: number,
+  maxTimeout?: number,
+  minTimeout?: number,
+  retries?: number,
+}
+```
+
+The default configuration will retry a failing trigger up to 10 times. Retries can be disabled entirely by setting `{ retries: 0 }`, e.g.,
+
+```ts
+{
+  expression: ['match', '*.ts', 'basename'],
+  onChange: async ({ spawn }: ChangeEvent) => {
+    await spawn`tsc`;
+  },
+  retry: {
+    retries: 0,
+  },
+},
+```
 
 ### Interruptible workflows
 

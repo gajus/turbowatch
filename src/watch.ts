@@ -74,6 +74,12 @@ export const watch = (configurationInput: ConfigurationInput) => {
             interruptible: trigger.interruptible ?? true,
             onChange: trigger.onChange,
             relativePath: response.relative_path,
+            retry: trigger.retry ?? {
+              factor: 2,
+              maxTimeout: Number.POSITIVE_INFINITY,
+              minTimeout: 1_000,
+              retries: 10,
+            },
             watch: response.watch,
           }),
         );

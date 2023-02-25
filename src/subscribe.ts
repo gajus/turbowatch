@@ -12,6 +12,7 @@ import {
   randomUUID,
 } from 'crypto';
 import path from 'node:path';
+import retry from 'p-retry';
 
 const log = Logger.child({
   namespace: 'subscribe',
@@ -129,8 +130,9 @@ export const subscribe = (
 
       const triggerSignal = controller?.signal ?? null;
 
-      const taskPromise = trigger
-        .onChange({
+      const onChange = (attempt: number) => {
+        return trigger.onChange({
+          attempt,
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           files: event.files.map((file: any) => {
             return {
@@ -144,7 +146,15 @@ export const subscribe = (
           signal: triggerSignal,
           spawn: createSpawn(taskId, triggerSignal),
           warning: event.warning ?? null,
-        })
+        });
+      };
+
+      const taskPromise = retry(onChange, {
+        ...trigger.retry,
+        onFailedAttempt: () => {
+          log.warn('retrying task %s...');
+        },
+      })
         // eslint-disable-next-line promise/prefer-await-to-then
         .then(() => {
           if (taskId === activeTask?.id) {
