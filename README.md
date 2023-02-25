@@ -143,7 +143,7 @@ void watch({
       expression: ['allof', ['match', '*.ts']],
       interruptible: false,
       onChange: async ({ signal }) => {
-        return interrupt($`sleep 30`, signal);
+        await interrupt($`sleep 30`, signal);
       },
     },
   ],
