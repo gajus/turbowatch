@@ -158,7 +158,7 @@ You can. However, [Watchman API](https://facebook.github.io/watchman/docs/nodejs
 
 Watchrow provides comparable functionality to Watchman with a lot simpler API.
 
-### Why not just X --watch?
+### Why not use X --watch?
 
 Many tools provide built-in watch functionality, e.g. `tsc --watch`. However, there are couple of problems with relying on them:
 
