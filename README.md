@@ -46,6 +46,22 @@ ChangeEvent;
 
 Then simply run the script using `node`.
 
+## Project root
+
+A project is the logical root of a set of related files in a filesystem tree and it is used to consolidate watches, e.g. the top workspace in a monorepo.
+
+By default, this will be the first path that has a `.git` directory.
+
+### Rationale
+
+> With a proliferation of tools that wish to take advantage of filesystem watching at different locations in a filesystem tree, it is possible and likely for those tools to establish multiple overlapping watches.
+>
+> Most systems have a finite limit on the number of directories that can be watched effectively; when that limit is exceeded the performance and reliability of filesystem watching is degraded, sometimes to the point that it ceases to function.
+>
+> It is therefore desirable to avoid this situation and consolidate the filesystem watches. Watchman offers the `watch-project` command to allow clients to opt-in to the watch consolidation behavior described below.
+
+– https://facebook.github.io/watchman/docs/cmd/watch-project.html
+
 ## Motivation
 
 To have a single tool for watching files for changes and orchestrating all build tasks.
