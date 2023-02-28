@@ -224,3 +224,22 @@ Many tools provide built-in watch functionality, e.g. `tsc --watch`. However, th
 * Native tools do not allow to combine operations, e.g. If your build depends on `tsc` and `tsc-alias`, then you cannot combine them.
 
 Because not all tools provide native `--watch` functionality and because they rarely can be combined even when they do, you end up mixing several different ways of watching the file system. It is confusing and inefficient. Watchrow provides a single abstraction for all use cases.
+
+### Why not concurrently?
+
+I have [seen](https://github.com/justkey007/tsc-alias#add-it-to-your-build-scripts-in-packagejson) [concurrently](https://github.com/open-cli-tools/concurrently) used to "chain" watch operations such as:
+
+```bash
+concurrently "tsc -w" "tsc-alias -w"
+```
+
+While this might work by brute-force, it will produce unexpected results as the order of execution is not guaranteed.
+
+If you are using Watchrow, simply execute one command after the other in the trigger workflow, e.g.
+
+```ts
+async ({ spawn }: ChangeEvent) => {
+  await spawn`tsc`;
+  await spawn`tsc-alias`;
+},
+```
