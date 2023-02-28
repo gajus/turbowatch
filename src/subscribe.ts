@@ -85,6 +85,20 @@ export const subscribe = (
         return;
       }
 
+      if (event.files.length > 10) {
+        log.trace({
+          files: event.files.slice(0, 10).map((file) => {
+            return file.name;
+          }),
+        }, '%d files changed; showing first 10', event.files.length);
+      } else {
+        log.trace({
+          files: event.files.map((file) => {
+            return file.name;
+          }),
+        }, '%d files changed', event.files.length);
+      }
+
       let reportFirst = first;
 
       if (first) {
