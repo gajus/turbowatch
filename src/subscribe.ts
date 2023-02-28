@@ -52,7 +52,7 @@ export const subscribe = (
             'exists',
             'type',
           ],
-          relative_path: trigger.relativePath,
+          relative_root: trigger.relativePath,
         },
       ],
       (error, response: WatchmanEvent & { subscribe: string, }) => {
