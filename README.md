@@ -48,9 +48,9 @@ Then simply run the script using `node`.
 
 ## Project root
 
-A project is the logical root of a set of related files in a filesystem tree and it is used to consolidate watches, e.g. the top workspace in a monorepo.
+A project is the logical root of a set of related files in a filesystem tree. Watchman uses it to consolidate watches.
 
-By default, this will be the first path that has a `.git` directory.
+By default, this will be the first path that has a `.git` directory. However, it can be overridden using [`.watchmanconfig`](https://facebook.github.io/watchman/docs/config.html).
 
 ### Rationale
 

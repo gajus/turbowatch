@@ -15,4 +15,5 @@ version: '0.2'
 words:
   - gajus
   - vitest
+  - watchmanconfig
   - watchrow
