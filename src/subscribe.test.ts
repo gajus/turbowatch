@@ -79,7 +79,7 @@ it('evaluates onChange', async () => {
   expect(subscriptionMock.verify());
 });
 
-it.only('evaluates multiple onChange', async () => {
+it('evaluates multiple onChange', async () => {
   const client = {
     command: () => {},
     on: () => {},
