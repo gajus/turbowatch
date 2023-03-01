@@ -147,12 +147,14 @@ type Retry = {
  * @property interruptible Sends abort signal to an ongoing routine, if any. Otherwise, waits for routine to finish. (default: true)
  * @property name Name of the trigger. Used for debugging. Must match /^[a-z0-9-_]+$/ pattern and must be unique.
  * @property onChange Routine that is executed when file changes are detected.
+ * @property persistent Label a task as persistent if it is a long-running process, such as a dev server or --watch mode.
  */
 type TriggerInput = {
   expression: Expression,
   interruptible?: boolean,
   name: string,
   onChange: OnChangeEventHandler,
+  persistent?: boolean,
   retry?: Retry,
 };
 

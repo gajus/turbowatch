@@ -16,7 +16,11 @@ void watch({
       // The expression is applied to the list of changed files to generate the set of files
       // that are relevant to this trigger. If no files match, the trigger will not be invoked.
       // https://facebook.github.io/watchman/docs/expr/allof.html
-      expression: ['match', '*.ts', 'basename'],
+      expression: [
+        'anyof',
+        ['match', '*.ts', 'basename'],
+        ['match', '*.tsx', 'basename'],
+      ],
       // Determines what to do if a new file change is detected while the trigger is executing.
       // If {interruptible: true}, then AbortSignal will abort the current onChange routine.
       // If {interruptible: false}, then Watchrow will wait until the onChange routine completes.
@@ -29,6 +33,12 @@ void watch({
       onChange: async ({ spawn }: ChangeEvent) => {
         await spawn`tsc`;
         await spawn`tsc-alias`;
+      },
+      // Label a task as persistent if it is a long-running process, such as a dev server or --watch mode.
+      persistent: false,
+      // Retry a task if it fails. Otherwise, watch program will throw an error if trigger fails.
+      retry: {
+        retries: 5,
       },
     },
   ],
