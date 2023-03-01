@@ -85,6 +85,64 @@ it('evaluates onChange', async () => {
   expect(subscriptionMock.verify());
 });
 
+it('evaluates multiple onChange', async () => {
+  const client = {
+    command: () => {},
+    on: () => {},
+  } as unknown as WatchmanClient;
+  const trigger = {
+    id: 'foo',
+    name: 'foo',
+    onChange: () => {},
+    retry: {
+      retries: 0,
+    },
+  } as unknown as Trigger;
+
+  const subscriptionMock = sinon.mock(trigger);
+
+  const onChange = subscriptionMock.expects('onChange').thrice();
+
+  const abortController = new AbortController();
+
+  onChange.onFirstCall().resolves(null);
+
+  onChange.onSecondCall().resolves(null);
+
+  onChange.onThirdCall().callsFake(() => {
+    abortController.abort();
+
+    return Promise.resolve(null);
+  });
+
+  const clientMock = sinon.mock(client);
+
+  clientMock
+    .expects('on')
+    .callsFake((event, callback) => {
+      callback({
+        files: [],
+        subscription: 'foo',
+      });
+      setTimeout(() => {
+        callback({
+          files: [],
+          subscription: 'foo',
+        });
+        setTimeout(() => {
+          callback({
+            files: [],
+            subscription: 'foo',
+          });
+        });
+      });
+    });
+
+  await subscribe(client, trigger, abortController.signal);
+
+  expect(onChange.callCount).toBe(3);
+});
+
 it('waits for onChange to complete when { interruptible: false }', async () => {
   const client = {
     command: () => {},
