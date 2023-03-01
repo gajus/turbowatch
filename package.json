@@ -40,10 +40,10 @@
   ],
   "license": "BSD-3-Clause",
   "main": "./dist/index.js",
-  "name": "watchrow",
+  "name": "turbowatch",
   "repository": {
     "type": "git",
-    "url": "https://github.com/gajus/watchrow"
+    "url": "https://github.com/gajus/turbowatch"
   },
   "scripts": {
     "build": "rm -fr ./dist && tsc --noEmit false",
