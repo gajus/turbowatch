@@ -278,7 +278,7 @@ async ({ spawn }: ChangeEvent) => {
 
 ### Why not Turborepo?
 
-[Turborepo](https://turbo.build/) currently does not have support for watch mode ([issue #986](https://github.com/vercel/turbo/issues/986)). However, Turbowatch has been designed to work with Turborepo.
+[Turborepo](https://turbo.build/) currently does not have support for watch mode (issue [#986](https://github.com/vercel/turbo/issues/986)). However, Turbowatch has been designed to work with Turborepo.
 
 To use Turbowatch with Turborepo:
 
@@ -299,3 +299,5 @@ turbo run dev --parallel
 ```
 
 > **Note** We found that using `dependsOn` with Turbowatch produces undesirable effects. Instead, simply use Turbowatch rules to identify when dependencies update.
+
+> **Note** Turbowatch is not aware of the dependency graph. Meaning, that your builds might fail at the first attempt. However, thanks to retries and debounce, it will start working after warming up. We are currently exploring how to reduce preventable failures. Please open an if you would like your ideas to be considered.
