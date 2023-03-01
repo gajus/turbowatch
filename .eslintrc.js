@@ -1,26 +1,16 @@
 module.exports = {
-  ignorePatterns: [
-    'package-lock.json',
-  ],
+  ignorePatterns: ['package-lock.json'],
   overrides: [
     {
-      extends: [
-        'canonical',
-        'canonical/node',
-      ],
+      extends: ['canonical', 'canonical/node', 'canonical/prettier'],
       files: '*.js',
     },
     {
-      extends: [
-        'canonical',
-        'canonical/typescript',
-      ],
+      extends: ['canonical', 'canonical/typescript', 'canonical/prettier'],
       files: '*.ts',
     },
     {
-      extends: [
-        'canonical/json',
-      ],
+      extends: ['canonical/json'],
       files: '*.json',
     },
   ],

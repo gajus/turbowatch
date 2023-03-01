@@ -1,43 +1,27 @@
-import {
-  generateShortId,
-} from './generateShortId';
-import {
-  Logger,
-} from './Logger';
-import {
-  subscribe,
-} from './subscribe';
+import { generateShortId } from './generateShortId';
+import { Logger } from './Logger';
+import { subscribe } from './subscribe';
 import {
   type Configuration,
   type ConfigurationInput,
   type JsonObject,
 } from './types';
-import {
-  Client,
-} from 'fb-watchman';
-import {
-  serializeError,
-} from 'serialize-error';
+import { Client } from 'fb-watchman';
+import { serializeError } from 'serialize-error';
 
 const log = Logger.child({
   namespace: 'watch',
 });
 
 export const watch = (configurationInput: ConfigurationInput) => {
-  const {
-    project,
-    triggers,
-  }: Configuration = {
+  const { project, triggers }: Configuration = {
     ...configurationInput,
   };
 
   const client = new Client();
 
   return new Promise((resolve, reject) => {
-    client.command([
-      'watch-project',
-      project,
-    ], (error, response) => {
+    client.command(['watch-project', project], (error, response) => {
       if (error) {
         log.error(
           {
@@ -69,6 +53,7 @@ export const watch = (configurationInput: ConfigurationInput) => {
       for (const trigger of triggers) {
         subscriptions.push(
           subscribe(client, {
+            debounce: trigger.debounce,
             expression: trigger.expression,
             id: generateShortId(),
             interruptible: trigger.interruptible ?? true,

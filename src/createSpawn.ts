@@ -1,11 +1,7 @@
 // cspell:words nothrow
 
-import {
-  Logger,
-} from './Logger';
-import {
-  $,
-} from 'zx';
+import { Logger } from './Logger';
+import { $ } from 'zx';
 
 const log = Logger.child({
   namespace: 'createSpawn',
@@ -21,10 +17,15 @@ const prefixLines = (subject: string, prefix: string): string => {
   return response.join('\n');
 };
 
-export const createSpawn = (taskId: string, triggerSignal: AbortSignal | null) => {
+export const createSpawn = (
+  taskId: string,
+  triggerSignal: AbortSignal | null,
+) => {
   return async (pieces: TemplateStringsArray, ...args: any[]) => {
     // eslint-disable-next-line promise/prefer-await-to-then
-    const processPromise = $(pieces, ...args).nothrow().quiet();
+    const processPromise = $(pieces, ...args)
+      .nothrow()
+      .quiet();
 
     (async () => {
       for await (const chunk of processPromise.stdout) {

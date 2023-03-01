@@ -1,12 +1,8 @@
 // cspell:words idirname imatch iname ipcre pcre wholename oclock
 
-import {
-  type ProcessOutput,
-} from 'zx';
+import { type ProcessOutput } from 'zx';
 
-export {
-  type Client as WatchmanClient,
-} from 'fb-watchman';
+export { type Client as WatchmanClient } from 'fb-watchman';
 
 type RelationalOperator =
   // Equal =
@@ -96,17 +92,17 @@ type JsonValue =
   | undefined;
 
 export type JsonObject = {
-  [k: string]: JsonValue,
+  [k: string]: JsonValue;
 };
 
 /**
  * @property mtime The timestamp indicating the last time this file was modified.
  */
 type File = {
-  exists: boolean,
-  mtime: number,
-  name: string,
-  size: number,
+  exists: boolean;
+  mtime: number;
+  name: string;
+  size: number;
 };
 
 /**
@@ -118,12 +114,15 @@ type File = {
  * @property warning Watchman warnings.
  */
 export type ChangeEvent = {
-  attempt: number,
-  files: readonly File[],
-  first: boolean,
-  signal: AbortSignal | null,
-  spawn: (pieces: TemplateStringsArray, ...args: any[]) => Promise<ProcessOutput>,
-  warning: string | null,
+  attempt: number;
+  files: readonly File[];
+  first: boolean;
+  signal: AbortSignal | null;
+  spawn: (
+    pieces: TemplateStringsArray,
+    ...args: any[]
+  ) => Promise<ProcessOutput>;
+  warning: string | null;
 };
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -136,10 +135,15 @@ type OnChangeEventHandler = (event: ChangeEvent) => Promise<any>;
  * @property retries The maximum amount of times to retry the operation. Default is 10. Seting this to 1 means do it once, then retry it once.
  */
 type Retry = {
-  factor?: number,
-  maxTimeout?: number,
-  minTimeout?: number,
-  retries?: number,
+  factor?: number;
+  maxTimeout?: number;
+  minTimeout?: number;
+  retries?: number;
+};
+
+type Debounce = {
+  leading?: boolean;
+  wait: number;
 };
 
 /**
@@ -150,34 +154,36 @@ type Retry = {
  * @property persistent Label a task as persistent if it is a long-running process, such as a dev server or --watch mode.
  */
 type TriggerInput = {
-  expression: Expression,
-  interruptible?: boolean,
-  name: string,
-  onChange: OnChangeEventHandler,
-  persistent?: boolean,
-  retry?: Retry,
+  debounce?: Debounce;
+  expression: Expression;
+  interruptible?: boolean;
+  name: string;
+  onChange: OnChangeEventHandler;
+  persistent?: boolean;
+  retry?: Retry;
 };
 
 export type Trigger = {
-  expression: Expression,
-  id: string,
-  interruptible: boolean,
-  name: string,
-  onChange: OnChangeEventHandler,
-  relativePath: string,
-  retry: Retry,
-  watch: string,
+  debounce?: Debounce;
+  expression: Expression;
+  id: string;
+  interruptible: boolean;
+  name: string;
+  onChange: OnChangeEventHandler;
+  relativePath: string;
+  retry: Retry;
+  watch: string;
 };
 
 /**
  * @property project absolute path to the directory to watch
  */
 export type ConfigurationInput = {
-  readonly project: string,
-  readonly triggers: readonly TriggerInput[],
+  readonly project: string;
+  readonly triggers: readonly TriggerInput[];
 };
 
 export type Configuration = {
-  readonly project: string,
-  readonly triggers: readonly TriggerInput[],
+  readonly project: string;
+  readonly triggers: readonly TriggerInput[];
 };
