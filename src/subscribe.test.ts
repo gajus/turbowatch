@@ -14,6 +14,23 @@ import {
   it,
 } from 'vitest';
 
+const defaultTrigger = {
+  expression: [
+    'match',
+    'foo',
+    'basename',
+  ],
+  id: 'foo',
+  interruptible: false,
+  name: 'foo',
+  onChange: async () => {},
+  relativePath: 'foo',
+  retry: {
+    retries: 0,
+  },
+  watch: 'foo',
+} as Trigger;
+
 const wait = (time: number) => {
   return new Promise((resolve) => {
     setTimeout(resolve, time);
@@ -24,7 +41,9 @@ it('rejects promise if Watchman "subscribe" command produces an error', async ()
   const client = {
     command: () => {},
   } as unknown as WatchmanClient;
-  const trigger = {} as Trigger;
+  const trigger = {
+    ...defaultTrigger,
+  } as Trigger;
 
   const clientMock = sinon.mock(client);
 
@@ -46,10 +65,8 @@ it('evaluates onChange', async () => {
     on: () => {},
   } as unknown as WatchmanClient;
   const trigger = {
-    id: 'foo',
-    name: 'foo',
-    onChange: () => {},
-  } as unknown as Trigger;
+    ...defaultTrigger,
+  } as Trigger;
 
   const subscriptionMock = sinon.mock(trigger);
 
@@ -85,16 +102,8 @@ it('evaluates multiple onChange', async () => {
     on: () => {},
   } as unknown as WatchmanClient;
   const trigger = {
-    debounce: {
-      wait: 0,
-    },
-    id: 'foo',
-    name: 'foo',
-    onChange: () => {},
-    retry: {
-      retries: 0,
-    },
-  } as unknown as Trigger;
+    ...defaultTrigger,
+  } as Trigger;
 
   const subscriptionMock = sinon.mock(trigger);
 
@@ -146,14 +155,9 @@ it('waits for onChange to complete when { interruptible: false }', async () => {
     on: () => {},
   } as unknown as WatchmanClient;
   const trigger = {
-    id: 'foo',
+    ...defaultTrigger,
     interruptible: false,
-    name: 'foo',
-    onChange: () => {},
-    retry: {
-      retries: 0,
-    },
-  } as unknown as Trigger;
+  } as Trigger;
 
   const abortController = new AbortController();
 
@@ -201,13 +205,8 @@ it('throws if onChange produces an error', async () => {
     on: () => {},
   } as unknown as WatchmanClient;
   const trigger = {
-    id: 'foo',
-    name: 'foo',
-    onChange: () => {},
-    retry: {
-      retries: 0,
-    },
-  } as unknown as Trigger;
+    ...defaultTrigger,
+  } as Trigger;
 
   const subscriptionMock = sinon.mock(trigger);
 
@@ -237,17 +236,15 @@ it('retries failing routines', async () => {
     on: () => {},
   } as unknown as WatchmanClient;
   const trigger = {
-    id: 'foo',
-    name: 'foo',
-    onChange: () => {},
+    ...defaultTrigger,
     retry: {
       retries: 1,
     },
-  } as unknown as Trigger;
+  } as Trigger;
 
   const subscriptionMock = sinon.mock(trigger);
 
-  const onChange = subscriptionMock.expects('onChange');
+  const onChange = subscriptionMock.expects('onChange').twice();
 
   const abortController = new AbortController();
 
@@ -278,9 +275,8 @@ it('reports { first: true } only for the first event', async () => {
     on: () => {},
   } as unknown as WatchmanClient;
   const trigger = {
-    id: 'foo',
-    onChange: () => {},
-  } as unknown as Trigger;
+    ...defaultTrigger,
+  } as Trigger;
 
   const subscriptionMock = sinon.mock(trigger);
 
