@@ -275,3 +275,27 @@ async ({ spawn }: ChangeEvent) => {
   await spawn`tsc-alias`;
 },
 ```
+
+### Why not Turborepo?
+
+[Turborepo](https://turbo.build/) currently does not have support for watch mode ([issue #986](https://github.com/vercel/turbo/issues/986)). However, Turbowatch has been designed to work with Turborepo.
+
+To use Turbowatch with Turborepo:
+
+1. define a persistent task
+1. run the persistent task using `--parallel`
+
+Example:
+
+```json
+"dev": {
+  "cache": false,
+  "persistent": true
+},
+```
+
+```bash
+turbo run dev --parallel
+```
+
+> **Note** We found that using `dependsOn` with Turbowatch produces undesirable effects. Instead, simply use Turbowatch rules to identify when dependencies update.
