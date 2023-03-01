@@ -22,6 +22,13 @@ type WatchmanEvent = {
   version: string,
 };
 
+type SubscriptionEvent = {
+  files: Array<{name: string, }>,
+  root: string,
+  subscription: string,
+  warning?: string,
+};
+
 export const subscribe = (
   client: WatchmanClient,
   trigger: Trigger,
@@ -80,11 +87,7 @@ export const subscribe = (
 
     let first = true;
 
-    client.on('subscription', async (event) => {
-      if (event.subscription !== trigger.id) {
-        return;
-      }
-
+    const handleSubscriptionEvent = async (event: SubscriptionEvent) => {
       if (event.files.length > 10) {
         log.trace({
           files: event.files.slice(0, 10).map((file) => {
@@ -144,7 +147,7 @@ export const subscribe = (
 
       const triggerSignal = controller?.signal ?? null;
 
-      const onChange = (attempt: number) => {
+      const taskPromise = retry((attempt: number) => {
         return trigger.onChange({
           attempt,
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -161,9 +164,7 @@ export const subscribe = (
           spawn: createSpawn(taskId, triggerSignal),
           warning: event.warning ?? null,
         });
-      };
-
-      const taskPromise = retry(onChange, {
+      }, {
         ...trigger.retry,
         onFailedAttempt: ({
           retriesLeft,
@@ -195,6 +196,14 @@ export const subscribe = (
       };
 
       log.trace('started task %s (%s)', trigger.name, taskId);
+    };
+
+    client.on('subscription', async (event: SubscriptionEvent) => {
+      if (event.subscription !== trigger.id) {
+        return;
+      }
+
+      handleSubscriptionEvent(event);
     });
   });
 };
