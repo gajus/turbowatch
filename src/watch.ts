@@ -21,7 +21,7 @@ export const watch = (configurationInput: ConfigurationInput) => {
   const client = new Client();
 
   return new Promise((resolve, reject) => {
-    client.command(['watch-project', project], (error, response) => {
+    client.command(['watch', project], (error, response) => {
       if (error) {
         log.error(
           {
