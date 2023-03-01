@@ -136,6 +136,56 @@ it('evaluates multiple onChange', async () => {
   expect(onChange.callCount).toBe(3);
 });
 
+it('debounces onChange', async () => {
+  const client = {
+    command: () => {},
+    on: () => {},
+  } as unknown as WatchmanClient;
+  const trigger = {
+    ...defaultTrigger,
+    debounce: {
+      wait: 100,
+    },
+  } as Trigger;
+
+  const subscriptionMock = sinon.mock(trigger);
+
+  const onChange = subscriptionMock.expects('onChange').thrice();
+
+  const abortController = new AbortController();
+
+  setTimeout(() => {
+    abortController.abort();
+  }, 200);
+
+  onChange.onFirstCall().resolves(null);
+
+  const clientMock = sinon.mock(client);
+
+  clientMock.expects('on').callsFake((event, callback) => {
+    callback({
+      files: [],
+      subscription: 'foo',
+    });
+    setTimeout(() => {
+      callback({
+        files: [],
+        subscription: 'foo',
+      });
+      setTimeout(() => {
+        callback({
+          files: [],
+          subscription: 'foo',
+        });
+      });
+    });
+  });
+
+  await subscribe(client, trigger, abortController.signal);
+
+  expect(onChange.callCount).toBe(1);
+});
+
 it('waits for onChange to complete when { interruptible: false }', async () => {
   const client = {
     command: () => {},

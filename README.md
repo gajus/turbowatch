@@ -21,6 +21,12 @@ void watch({
         ['match', '*.ts', 'basename'],
         ['match', '*.tsx', 'basename'],
       ],
+      // Debounces trigger by 100 milliseconds. This is the default as it is often desirable to batch changes.
+      // Provide { debounce: { wait: 0 } } to disable debounce.
+      debounce: {
+        leading: false,
+        wait: 100,
+      },
       // Determines what to do if a new file change is detected while the trigger is executing.
       // If {interruptible: true}, then AbortSignal will abort the current onChange routine.
       // If {interruptible: false}, then Watchrow will wait until the onChange routine completes.
