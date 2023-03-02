@@ -2,9 +2,9 @@ import { createSpawn } from './createSpawn';
 import { generateShortId } from './generateShortId';
 import { Logger } from './Logger';
 import { type Trigger, type WatchmanClient } from './types';
-import { debounce } from 'debounce';
 import path from 'node:path';
 import retry from 'p-retry';
+import { debounce } from 'throttle-debounce';
 
 const log = Logger.child({
   namespace: 'subscribe',
@@ -199,9 +199,11 @@ export const subscribe = (
 
     if (trigger.debounce) {
       handleSubscriptionEvent = debounce(
-        handleSubscriptionEvent,
         trigger.debounce.wait,
-        trigger.debounce.leading,
+        handleSubscriptionEvent,
+        {
+          atBegin: trigger.debounce.leading,
+        },
       );
     }
 
