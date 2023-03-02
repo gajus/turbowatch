@@ -2,6 +2,18 @@
 
 Extremely fast file change detector and task orchestrator for Node.js.
 
+Refer to recipes:
+
+* [Rebuilding assets when file changes are detected](#rebuilding-assets-when-file-changes-are-detected)
+* [Restarting server when file changes are detected](#restarting-server-when-file-changes-are-detected)
+* [Retrying failing triggers](#retrying-failing-triggers)
+* [Handling the `AbortSignal`](#handling-the-abortsignal)
+* [Throttling `spawn` output](#throttling-spawn-output)
+
+## API
+
+Turbowatch defaults are a good choice for most projects. However, Turbowatch has many options that you should be familiar with.
+
 ```ts
 import {
   watch,
@@ -49,18 +61,7 @@ void watch({
     },
   ],
 });
-
-/**
- * @property attempt Attempt number (starting with 0) indicating if trigger was retried.
- * @property files Describes the list of files that changed.
- * @property first Identifies if this is the first event.
- * @property signal Instance of AbortSignal used to signal when the routine should be aborted.
- * @property spawn Instance of zx bound to AbortSignal.
- */
-ChangeEvent;
 ```
-
-Then simply run the script using `node`.
 
 ## Project root
 
@@ -134,6 +135,59 @@ This is the gist behind Watchman expressions. However, there are many more expre
 
 ## Recipes
 
+### Rebuilding assets when file changes are detected
+
+```ts
+import { watch } from 'turbowatch';
+
+void watch({
+  project: __dirname,
+  triggers: [
+    {
+      expression: [
+        'anyof',
+        ['match', '*.ts', 'basename'],
+      ],
+      // Because of this setting, Turbowatch will wait for the `build` trigger
+      // to complete before re-running the trigger routine.
+      interruptible: false,
+      name: 'build',
+      onChange: async ({ spawn }) => {
+        await spawn`tsc`;
+        await spawn`tsc-alias`;
+      },
+    },
+  ],
+});
+```
+
+### Restarting server when file changes are detected
+
+```ts
+import { watch } from 'turbowatch';
+
+void watch({
+  project: __dirname,
+  triggers: [
+    {
+      expression: [
+        'anyof',
+        ['match', '*.ts', 'basename'],
+        ['match', '*.graphql', 'basename'],
+      ],
+      // Because of this setting, Turbowatch will kill the processes that spawn starts
+      // when it detects changes when it detects a change.
+      interruptible: true,
+      name: 'start-server',
+      onChange: async ({ spawn }) => {
+        await spawn`tsx ./src/bin/wait.ts`;
+        await spawn`tsx ./src/bin/server.ts`;
+      },
+    },
+  ],
+});
+```
+
 ### Retrying failing triggers
 
 Retries are configured by passing a `retry` property to the trigger configuration.
@@ -167,7 +221,7 @@ The default configuration will retry a failing trigger up to 10 times. Retries c
 },
 ```
 
-### Interruptible workflows
+### Handling the `AbortSignal`
 
 > **Note** Turbowatch already comes with `zx` bound to the `AbortSignal`. Just use `spawn`. Documentation demonstrates how to implement equivalent functionality.
 
