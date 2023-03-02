@@ -143,8 +143,6 @@ export const subscribe = (
 
       const taskId = generateShortId();
 
-      const triggerSignal = controller?.signal ?? null;
-
       const taskPromise = retry(
         (attempt: number) => {
           return trigger.onChange({
@@ -159,8 +157,8 @@ export const subscribe = (
               };
             }),
             first: reportFirst,
-            signal: triggerSignal,
-            spawn: createSpawn(taskId, triggerSignal),
+            signal: controller?.signal ?? null,
+            spawn: createSpawn(taskId, { abortSignal: controller?.signal }),
             warning: event.warning ?? null,
           });
         },

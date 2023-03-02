@@ -19,7 +19,7 @@ const prefixLines = (subject: string, prefix: string): string => {
 
 export const createSpawn = (
   taskId: string,
-  triggerSignal: AbortSignal | null,
+  { abortSignal }: { abortSignal?: AbortSignal } = {},
 ) => {
   return async (pieces: TemplateStringsArray, ...args: any[]) => {
     // eslint-disable-next-line promise/prefer-await-to-then
@@ -41,18 +41,18 @@ export const createSpawn = (
       }
     })();
 
-    if (triggerSignal) {
+    if (abortSignal) {
       const kill = () => {
         processPromise.kill();
       };
 
-      triggerSignal.addEventListener('abort', kill, {
+      abortSignal.addEventListener('abort', kill, {
         once: true,
       });
 
       // eslint-disable-next-line promise/prefer-await-to-then
       processPromise.finally(() => {
-        triggerSignal.removeEventListener('abort', kill);
+        abortSignal.removeEventListener('abort', kill);
       });
     }
 
@@ -62,7 +62,7 @@ export const createSpawn = (
       return result;
     }
 
-    if (triggerSignal?.aborted) {
+    if (abortSignal?.aborted) {
       return result;
     }
 
