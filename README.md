@@ -220,6 +220,42 @@ void watch({
 });
 ```
 
+### Throttling `spawn` output
+
+When multiple processes are sending logs in parallel, the log stream might be hard to read, e.g.
+
+```yaml
+redis:dev: 973191cf > #5 sha256:7f65636102fd1f499092cb075baa95784488c0bbc3e0abff2a6d853109e4a948 4.19MB / 9.60MB 22.3s
+api:dev: a1e4c6a7 > [18:48:37.171] 765ms debug @utilities #waitFor: Waiting for database to be ready...
+redis:dev: 973191cf > #5 sha256:d01ec855d06e16385fb33f299d9cc6eb303ea04378d0eea3a75d74e26c6e6bb9 0B / 1.39MB 22.7s
+api:dev: a1e4c6a7 > [18:48:37.225]  54ms debug @utilities #waitFor: Waiting for Redis to be ready...
+worker:dev: 2fb02d72 > [18:48:37.313]  88ms debug @utilities #waitFor: Waiting for database to be ready...
+redis:dev: 973191cf > #5 sha256:7f65636102fd1f499092cb075baa95784488c0bbc3e0abff2a6d853109e4a948 5.24MB / 9.60MB 22.9s
+worker:dev: 2fb02d72 > [18:48:37.408]  95ms debug @utilities #waitFor: Waiting for Redis to be ready...
+redis:dev: 973191cf > #5 sha256:7f65636102fd1f499092cb075baa95784488c0bbc3e0abff2a6d853109e4a948 6.29MB / 9.60MB 23.7s
+api:dev: a1e4c6a7 > [18:48:38.172] 764ms debug @utilities #waitFor: Waiting for database to be ready...
+api:dev: a1e4c6a7 > [18:48:38.227]  55ms debug @utilities #waitFor: Waiting for Redis to be ready...
+```
+
+In this example, `redis`, `api` and `worker` processes produce logs at almost the exact same time causing the log stream to switch between outputting from a different process every other line. This makes it hard to read the logs.
+
+By default, Turbowatch throttles log output to at most once a second, producing a lot more easier to follow log output:
+
+```yaml
+redis:dev: 973191cf > #5 sha256:7f65636102fd1f499092cb075baa95784488c0bbc3e0abff2a6d853109e4a948 4.19MB / 9.60MB 22.3s
+redis:dev: 973191cf > #5 sha256:d01ec855d06e16385fb33f299d9cc6eb303ea04378d0eea3a75d74e26c6e6bb9 0B / 1.39MB 22.7s
+redis:dev: 973191cf > #5 sha256:7f65636102fd1f499092cb075baa95784488c0bbc3e0abff2a6d853109e4a948 5.24MB / 9.60MB 22.9s
+redis:dev: 973191cf > #5 sha256:7f65636102fd1f499092cb075baa95784488c0bbc3e0abff2a6d853109e4a948 6.29MB / 9.60MB 23.7s
+api:dev: a1e4c6a7 > [18:48:37.171] 765ms debug @utilities #waitFor: Waiting for database to be ready...
+api:dev: a1e4c6a7 > [18:48:37.225]  54ms debug @utilities #waitFor: Waiting for Redis to be ready...
+api:dev: a1e4c6a7 > [18:48:38.172] 764ms debug @utilities #waitFor: Waiting for database to be ready...
+api:dev: a1e4c6a7 > [18:48:38.227]  55ms debug @utilities #waitFor: Waiting for Redis to be ready...
+worker:dev: 2fb02d72 > [18:48:37.313]  88ms debug @utilities #waitFor: Waiting for database to be ready...
+worker:dev: 2fb02d72 > [18:48:37.408]  95ms debug @utilities #waitFor: Waiting for Redis to be ready...
+```
+
+However, this means that some logs might come out of order. To disable this feature, set `{ throttleOutput: { delay: 0 } }`.
+
 ### Logging
 
 Turbowatch uses [Roarr](https://github.com/gajus/roarr) logger.

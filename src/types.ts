@@ -146,6 +146,10 @@ type Debounce = {
   wait: number;
 };
 
+export type Throttle = {
+  delay: number;
+};
+
 /**
  * @property expression watchman expression, e.g. https://facebook.github.io/watchman/docs/expr/allof.html
  * @property interruptible Sends abort signal to an ongoing routine, if any. Otherwise, waits for routine to finish. (default: true)
@@ -161,6 +165,7 @@ type TriggerInput = {
   onChange: OnChangeEventHandler;
   persistent?: boolean;
   retry?: Retry;
+  throttleOutput?: Throttle;
 };
 
 export type Trigger = {
@@ -172,6 +177,7 @@ export type Trigger = {
   onChange: OnChangeEventHandler;
   relativePath: string;
   retry: Retry;
+  throttleOutput: Throttle;
   watch: string;
 };
 

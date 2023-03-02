@@ -1,6 +1,8 @@
 // cspell:words nothrow
 
 import { Logger } from './Logger';
+import { type Throttle } from './types';
+import { throttle } from 'throttle-debounce';
 import { $ } from 'zx';
 
 const log = Logger.child({
@@ -19,8 +21,29 @@ const prefixLines = (subject: string, prefix: string): string => {
 
 export const createSpawn = (
   taskId: string,
-  { abortSignal }: { abortSignal?: AbortSignal } = {},
+  {
+    abortSignal,
+    throttleOutput,
+  }: { abortSignal?: AbortSignal; throttleOutput?: Throttle } = {},
 ) => {
+  let stdoutBuffer: string[] = [];
+  let stderrBuffer: string[] = [];
+
+  const output = throttle(1_000, () => {
+    if (stdoutBuffer.length) {
+      // eslint-disable-next-line no-console
+      console.log(stdoutBuffer.join('\n'));
+    }
+
+    if (stderrBuffer.length) {
+      // eslint-disable-next-line no-console
+      console.log(stderrBuffer.join('\n'));
+    }
+
+    stdoutBuffer = [];
+    stderrBuffer = [];
+  });
+
   return async (pieces: TemplateStringsArray, ...args: any[]) => {
     // eslint-disable-next-line promise/prefer-await-to-then
     const processPromise = $(pieces, ...args)
@@ -29,15 +52,31 @@ export const createSpawn = (
 
     (async () => {
       for await (const chunk of processPromise.stdout) {
-        // eslint-disable-next-line no-console
-        console.log(prefixLines(chunk.toString().trimEnd(), taskId + ' > '));
+        const message = prefixLines(chunk.toString().trimEnd(), taskId + ' > ');
+
+        if (throttleOutput?.delay) {
+          stdoutBuffer.push(message);
+
+          output();
+        } else {
+          // eslint-disable-next-line no-console
+          console.log(message);
+        }
       }
     })();
 
     (async () => {
       for await (const chunk of processPromise.stderr) {
-        // eslint-disable-next-line no-console
-        console.error(prefixLines(chunk.toString().trimEnd(), taskId + ' > '));
+        const message = prefixLines(chunk.toString().trimEnd(), taskId + ' > ');
+
+        if (throttleOutput?.delay) {
+          stderrBuffer.push(message);
+
+          output();
+        } else {
+          // eslint-disable-next-line no-console
+          console.error(message);
+        }
       }
     })();
 

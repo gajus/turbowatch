@@ -24,10 +24,10 @@ type SubscriptionEvent = {
 export const subscribe = (
   client: WatchmanClient,
   trigger: Trigger,
-  signal?: AbortSignal,
+  abortSignal?: AbortSignal,
 ) => {
   return new Promise((resolve, reject) => {
-    signal?.addEventListener(
+    abortSignal?.addEventListener(
       'abort',
       () => {
         resolve(null);
@@ -158,7 +158,10 @@ export const subscribe = (
             }),
             first: reportFirst,
             signal: controller?.signal ?? null,
-            spawn: createSpawn(taskId, { abortSignal: controller?.signal }),
+            spawn: createSpawn(taskId, {
+              abortSignal: controller?.signal,
+              throttleOutput: trigger.throttleOutput,
+            }),
             warning: event.warning ?? null,
           });
         },

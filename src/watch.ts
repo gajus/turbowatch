@@ -66,6 +66,7 @@ export const watch = (configurationInput: ConfigurationInput) => {
               minTimeout: 1_000,
               retries: 10,
             },
+            throttleOutput: trigger.throttleOutput ?? { delay: 1_000 },
             watch: response.watch,
           }),
         );
