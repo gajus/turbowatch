@@ -14,6 +14,9 @@ const defaultTrigger = {
   retry: {
     retries: 0,
   },
+  throttleOutput: {
+    delay: 0,
+  },
   watch: 'foo',
 } as Trigger;
 
