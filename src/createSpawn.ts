@@ -29,7 +29,7 @@ export const createSpawn = (
   let stdoutBuffer: string[] = [];
   let stderrBuffer: string[] = [];
 
-  const output = throttle(1_000, () => {
+  const output = throttle(throttleOutput?.delay, () => {
     if (stdoutBuffer.length) {
       // eslint-disable-next-line no-console
       console.log(stdoutBuffer.join('\n'));
