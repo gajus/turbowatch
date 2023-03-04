@@ -322,7 +322,13 @@ Use [@roarr/cli](https://github.com/gajus/roarr-cli) to pretty-print logs.
 tsx turbowatch.ts | roarr
 ```
 
-## FAQ
+## Alternatives
+
+The biggest benefit of using Turbowatch is that it provides a single abstraction for all file watching operations. That is, you might get away with Nodemon, concurrently, `--watch`, etc. running in parallel, but using Turbowatch will introduce consistency to how you perform watch operations.
+
+### Why not use Watchman?
+
+Turbowatch is based on [Watchman](https://facebook.github.io/watchman/), and while Watchman is great at watching files, Turbowatch adds a layer of abstraction for orchestrating task execution in response to file changes (shell interface, graceful shutdown, output grouping, etc).
 
 ### Why not use Nodemon?
 
@@ -332,20 +338,12 @@ Turbowatch is based on [Watchman](https://facebook.github.io/watchman/), which h
 
 In terms of the API, Turbowatch leverages powerful Watchman [expression language](#expressions-cheat-sheet) and [zx](https://github.com/google/zx) `child_process` abstractions to give you granular control over event handling and script execution.
 
-### Why not use Watchman?
-
-You can. However, [Watchman API](https://facebook.github.io/watchman/docs/nodejs.html) and documentation are not particularly developer-friendly.
-
-Turbowatch provides comparable functionality to Watchman with a lot simpler API.
-
 ### Why not use X --watch?
 
 Many tools provide built-in watch functionality, e.g. `tsc --watch`. However, there are couple of problems with relying on them:
 
-* Running many file watchers is inefficient and is probably draining your laptop's battery faster than you realize. Watchman uses a single server to watch all file changes.
-* Native tools do not allow to combine operations, e.g. If your build depends on `tsc` and `tsc-alias`, then you cannot combine them.
-
-Because not all tools provide native `--watch` functionality and because they rarely can be combined even when they do, you end up mixing several different ways of watching the file system. It is confusing and inefficient. Turbowatch provides a single abstraction for all use cases.
+* Running many file watchers is inefficient and is probably draining your laptop's battery faster than you realize. Turbowatch uses a single server to watch all file changes.
+* Native tools do not allow to combine operations, e.g. If your build depends on `tsc` and `tsc-alias`, then you cannot combine them. Turbowatch allows you to chain arbitrary operations.
 
 ### Why not concurrently?
 
@@ -390,4 +388,4 @@ turbo run dev --parallel
 
 > **Note** We found that using `dependsOn` with Turbowatch produces undesirable effects. Instead, simply use Turbowatch rules to identify when dependencies update.
 
-> **Note** Turbowatch is not aware of the dependency graph. Meaning, that your builds might fail at the first attempt. However, thanks to retries and debounce, it will start working after warming up. We are currently exploring how to reduce preventable failures. Please open an if you would like your ideas to be considered.
+> **Note** Turbowatch is not aware of the Turborepo dependency graph. Meaning, that your builds might fail at the first attempt. However, thanks to retries and debounce, it will start working after warming up. We are currently exploring how to reduce preventable failures. Please open an if you would like your ideas to be considered.
