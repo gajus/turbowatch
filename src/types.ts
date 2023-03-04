@@ -114,10 +114,10 @@ type File = {
  * @property warning Watchman warnings.
  */
 export type ChangeEvent = {
+  abortSignal?: AbortSignal;
   attempt: number;
   files: readonly File[];
   first: boolean;
-  signal: AbortSignal | null;
   spawn: (
     pieces: TemplateStringsArray,
     ...args: any[]
@@ -187,11 +187,13 @@ export type Trigger = {
  * @property project absolute path to the directory to watch
  */
 export type ConfigurationInput = {
+  readonly abortSignal?: AbortSignal;
   readonly project: string;
   readonly triggers: readonly TriggerInput[];
 };
 
 export type Configuration = {
+  readonly abortSignal?: AbortSignal;
   readonly project: string;
   readonly triggers: readonly TriggerInput[];
 };

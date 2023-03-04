@@ -73,6 +73,12 @@ export const subscribe = (
     let first = true;
 
     let handleSubscriptionEvent = async (event: SubscriptionEvent) => {
+      if (trigger.abortSignal?.aborted) {
+        log.warn('ignoring event because Turbowatch is shutting down');
+
+        return;
+      }
+
       if (event.files.length > 10) {
         log.trace(
           {
@@ -106,6 +112,16 @@ export const subscribe = (
 
       if (trigger.interruptible) {
         controller = new AbortController();
+      }
+
+      let abortSignal = controller?.signal;
+
+      if (abortSignal && trigger.abortSignal) {
+        trigger.abortSignal.addEventListener('abort', () => {
+          controller?.abort();
+        });
+      } else if (trigger.abortSignal) {
+        abortSignal = trigger.abortSignal;
       }
 
       if (activeTask) {
@@ -145,6 +161,7 @@ export const subscribe = (
       const taskPromise = retry(
         (attempt: number) => {
           return trigger.onChange({
+            abortSignal,
             attempt,
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             files: event.files.map((file: any) => {
@@ -156,9 +173,8 @@ export const subscribe = (
               };
             }),
             first: reportFirst,
-            signal: controller?.signal ?? null,
             spawn: createSpawn(taskId, {
-              abortSignal: controller?.signal,
+              abortSignal,
               throttleOutput: trigger.throttleOutput,
             }),
             taskId,

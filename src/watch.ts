@@ -14,13 +14,25 @@ const log = Logger.child({
 });
 
 export const watch = (configurationInput: ConfigurationInput) => {
-  const { project, triggers }: Configuration = {
+  const { project, triggers, abortSignal }: Configuration = {
     ...configurationInput,
   };
 
   const client = new Client();
 
   return new Promise((resolve, reject) => {
+    if (abortSignal) {
+      abortSignal.addEventListener(
+        'abort',
+        () => {
+          client.end();
+        },
+        {
+          once: true,
+        },
+      );
+    }
+
     client.command(['watch-project', project], (error, response) => {
       if (error) {
         log.error(
@@ -53,6 +65,7 @@ export const watch = (configurationInput: ConfigurationInput) => {
       for (const trigger of triggers) {
         subscriptions.push(
           subscribe(client, {
+            abortSignal,
             debounce: trigger.debounce,
             expression: trigger.expression,
             id: generateShortId(),

@@ -232,7 +232,7 @@ import { type ProcessPromise } from 'zx';
 
 const interrupt = async (
   processPromise: ProcessPromise,
-  signal: AbortSignal,
+  abortSignal: AbortSignal,
 ) => {
   let aborted = false;
 
@@ -242,7 +242,7 @@ const interrupt = async (
     processPromise.kill();
   };
 
-  signal.addEventListener('abort', kill, { once: true });
+  abortSignal.addEventListener('abort', kill, { once: true });
 
   try {
     await processPromise;
@@ -252,7 +252,7 @@ const interrupt = async (
     }
   }
 
-  signal.removeEventListener('abort', kill);
+  abortSignal.removeEventListener('abort', kill);
 };
 ```
 
@@ -266,8 +266,8 @@ void watch({
       expression: ['allof', ['match', '*.ts']],
       interruptible: false,
       name: 'sleep',
-      onChange: async ({ signal }) => {
-        await interrupt($`sleep 30`, signal);
+      onChange: async ({ abortSignal }) => {
+        await interrupt($`sleep 30`, abortSignal);
       },
     },
   ],
@@ -309,6 +309,35 @@ worker:dev: 2fb02d72 > [18:48:37.408]  95ms debug @utilities #waitFor: Waiting f
 ```
 
 However, this means that some logs might come out of order. To disable this feature, set `{ throttleOutput: { delay: 0 } }`.
+
+### Gracefully terminating Turbowatch
+
+Use `AbortController` to terminate Turbowatch:
+
+```ts
+const abortController = new AbortController();
+
+void watch({
+  project: __dirname,
+  abortSignal: abortController.signal,
+  triggers: [
+    {
+      name: 'test',
+      expression: ['match', '*', 'basename'],
+      onChange: async ({ spawn }) => {
+        // `sleep 60` will receive `SIGTERM` as soon as `abortController.abort()` is called.
+        await spawn`sleep 60`;
+      },
+    }
+  ],
+});
+
+process.on('SIGINT', () => {
+  abortController.abort();
+});
+```
+
+The abort signal will propagate to all `onChange` handlers. The processes that were initiated using `spawn` will receive `SIGTERM` signal.
 
 ### Logging
 
