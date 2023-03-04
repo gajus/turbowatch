@@ -162,6 +162,7 @@ export const subscribe = (
               abortSignal: controller?.signal,
               throttleOutput: trigger.throttleOutput,
             }),
+            taskId,
             warning: event.warning ?? null,
           });
         },

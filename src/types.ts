@@ -122,6 +122,7 @@ export type ChangeEvent = {
     pieces: TemplateStringsArray,
     ...args: any[]
   ) => Promise<ProcessOutput>;
+  taskId: string;
   warning: string | null;
 };
 

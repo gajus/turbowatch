@@ -61,7 +61,7 @@ it('evaluates onChange', async () => {
 
   const abortController = new AbortController();
 
-  subscriptionMock
+  const onChange = subscriptionMock
     .expects('onChange')
     .once()
     .callsFake(() => {
@@ -86,6 +86,8 @@ it('evaluates onChange', async () => {
 
   expect(clientMock.verify());
   expect(subscriptionMock.verify());
+
+  expect(onChange.args[0][0].taskId).toMatch(/^[a-z\d]{8}$/u);
 });
 
 it('evaluates multiple onChange', async () => {
