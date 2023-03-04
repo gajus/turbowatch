@@ -49,17 +49,18 @@ it('rejects promise if Watchman "subscribe" command produces an error', async ()
 });
 
 it('evaluates onChange', async () => {
+  const abortController = new AbortController();
+
   const client = {
     command: () => {},
     on: () => {},
   } as unknown as WatchmanClient;
   const trigger = {
     ...defaultTrigger,
+    abortSignal: abortController.signal,
   } as Trigger;
 
   const subscriptionMock = sinon.mock(trigger);
-
-  const abortController = new AbortController();
 
   const onChange = subscriptionMock
     .expects('onChange')
@@ -82,7 +83,7 @@ it('evaluates onChange', async () => {
       });
     });
 
-  await subscribe(client, trigger, abortController.signal);
+  await subscribe(client, trigger);
 
   expect(clientMock.verify());
   expect(subscriptionMock.verify());
@@ -91,19 +92,20 @@ it('evaluates onChange', async () => {
 });
 
 it('evaluates multiple onChange', async () => {
+  const abortController = new AbortController();
+
   const client = {
     command: () => {},
     on: () => {},
   } as unknown as WatchmanClient;
   const trigger = {
     ...defaultTrigger,
+    abortSignal: abortController.signal,
   } as Trigger;
 
   const subscriptionMock = sinon.mock(trigger);
 
   const onChange = subscriptionMock.expects('onChange').thrice();
-
-  const abortController = new AbortController();
 
   onChange.onFirstCall().resolves(null);
 
@@ -136,18 +138,21 @@ it('evaluates multiple onChange', async () => {
     });
   });
 
-  await subscribe(client, trigger, abortController.signal);
+  await subscribe(client, trigger);
 
   expect(onChange.callCount).toBe(3);
 });
 
 it('debounces onChange', async () => {
+  const abortController = new AbortController();
+
   const client = {
     command: () => {},
     on: () => {},
   } as unknown as WatchmanClient;
   const trigger = {
     ...defaultTrigger,
+    abortSignal: abortController.signal,
     debounce: {
       wait: 100,
     },
@@ -156,8 +161,6 @@ it('debounces onChange', async () => {
   const subscriptionMock = sinon.mock(trigger);
 
   const onChange = subscriptionMock.expects('onChange').thrice();
-
-  const abortController = new AbortController();
 
   setTimeout(() => {
     abortController.abort();
@@ -186,22 +189,23 @@ it('debounces onChange', async () => {
     });
   });
 
-  await subscribe(client, trigger, abortController.signal);
+  await subscribe(client, trigger);
 
   expect(onChange.callCount).toBe(1);
 });
 
 it('waits for onChange to complete when { interruptible: false }', async () => {
+  const abortController = new AbortController();
+
   const client = {
     command: () => {},
     on: () => {},
   } as unknown as WatchmanClient;
   const trigger = {
     ...defaultTrigger,
+    abortSignal: abortController.signal,
     interruptible: false,
   } as Trigger;
-
-  const abortController = new AbortController();
 
   const triggerMock = sinon.mock(trigger);
 
@@ -234,25 +238,26 @@ it('waits for onChange to complete when { interruptible: false }', async () => {
     });
   });
 
-  await subscribe(client, trigger, abortController.signal);
+  await subscribe(client, trigger);
 
   expect(onChange.callCount).toBe(2);
 });
 
 it('throws if onChange produces an error', async () => {
+  const abortController = new AbortController();
+
   const client = {
     command: () => {},
     on: () => {},
   } as unknown as WatchmanClient;
   const trigger = {
     ...defaultTrigger,
+    abortSignal: abortController.signal,
   } as Trigger;
 
   const subscriptionMock = sinon.mock(trigger);
 
   subscriptionMock.expects('onChange').rejects(new Error('foo'));
-
-  const abortController = new AbortController();
 
   const clientMock = sinon.mock(client);
 
@@ -263,20 +268,21 @@ it('throws if onChange produces an error', async () => {
     });
   });
 
-  await expect(
-    subscribe(client, trigger, abortController.signal),
-  ).rejects.toThrowError('foo');
+  await expect(subscribe(client, trigger)).rejects.toThrowError('foo');
 
   await abortController.abort();
 });
 
 it('retries failing routines', async () => {
+  const abortController = new AbortController();
+
   const client = {
     command: () => {},
     on: () => {},
   } as unknown as WatchmanClient;
   const trigger = {
     ...defaultTrigger,
+    abortSignal: abortController.signal,
     retry: {
       retries: 1,
     },
@@ -285,8 +291,6 @@ it('retries failing routines', async () => {
   const subscriptionMock = sinon.mock(trigger);
 
   const onChange = subscriptionMock.expects('onChange').twice();
-
-  const abortController = new AbortController();
 
   onChange.onFirstCall().rejects(new Error('foo'));
   onChange.onSecondCall().callsFake(() => {
@@ -304,16 +308,19 @@ it('retries failing routines', async () => {
     });
   });
 
-  await subscribe(client, trigger, abortController.signal);
+  await subscribe(client, trigger);
 });
 
 it('reports { first: true } only for the first event', async () => {
+  const abortController = new AbortController();
+
   const client = {
     command: () => {},
     on: () => {},
   } as unknown as WatchmanClient;
   const trigger = {
     ...defaultTrigger,
+    abortSignal: abortController.signal,
   } as Trigger;
 
   const subscriptionMock = sinon.mock(trigger);
@@ -321,8 +328,6 @@ it('reports { first: true } only for the first event', async () => {
   const onChange = subscriptionMock.expects('onChange').twice();
 
   onChange.onFirstCall().resolves(null);
-
-  const abortController = new AbortController();
 
   onChange.onSecondCall().callsFake(() => {
     abortController.abort();
@@ -343,7 +348,7 @@ it('reports { first: true } only for the first event', async () => {
     });
   });
 
-  await subscribe(client, trigger, abortController.signal);
+  await subscribe(client, trigger);
 
   expect(onChange.args).toMatchObject([
     [

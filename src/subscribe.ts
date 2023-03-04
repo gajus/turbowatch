@@ -24,10 +24,9 @@ type SubscriptionEvent = {
 export const subscribe = (
   client: WatchmanClient,
   trigger: Trigger,
-  abortSignal?: AbortSignal,
 ): Promise<null> => {
   return new Promise((resolve, reject) => {
-    abortSignal?.addEventListener(
+    trigger.abortSignal?.addEventListener(
       'abort',
       () => {
         resolve(null);

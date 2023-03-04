@@ -170,6 +170,7 @@ type TriggerInput = {
 };
 
 export type Trigger = {
+  abortSignal?: AbortSignal;
   debounce?: Debounce;
   expression: Expression;
   id: string;
