@@ -48,7 +48,7 @@ export const watch = (configurationInput: ConfigurationInput) => {
         response.relative_path,
       );
 
-      const subscriptions: Array<Promise<unknown>> = [];
+      const subscriptions: Array<Promise<null>> = [];
 
       for (const trigger of triggers) {
         subscriptions.push(
