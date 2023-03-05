@@ -1,4 +1,4 @@
-# Turbowatch
+# Turbowatch 🏎
 
 Extremely fast file change detector and task orchestrator for Node.js.
 
@@ -9,6 +9,8 @@ Refer to recipes:
 * [Retrying failing triggers](#retrying-failing-triggers)
 * [Handling the `AbortSignal`](#handling-the-abortsignal)
 * [Throttling `spawn` output](#throttling-spawn-output)
+
+[Turbowatch vs Alternatives](#alternatives)
 
 ## API
 
