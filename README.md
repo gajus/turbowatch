@@ -23,19 +23,20 @@ import {
 } from 'turbowatch';
 
 void watch({
-  // Path to the root of the project.
+  // The base directory under which all files are matched.
+  // Note: This is different from the "root project" (https://github.com/gajus/turbowatch#project-root).
   project: __dirname,
   triggers: [
     {
-      // The expression is applied to the list of changed files to generate the set of files
-      // that are relevant to this trigger. If no files match, the trigger will not be invoked.
-      // https://facebook.github.io/watchman/docs/expr/allof.html
+      // Expression match files based on name, file size, modification date, and other criteria.
+      // https://github.com/gajus/turbowatch#expressions-cheat-sheet
       expression: [
         'anyof',
         ['match', '*.ts', 'basename'],
         ['match', '*.tsx', 'basename'],
       ],
-      // Debounces trigger by 100 milliseconds. This is the default as it is often desirable to batch changes.
+      // Debounces trigger by 100 milliseconds.
+      // This is the default as it is often desirable to wait for several changes before re-running the trigger.
       // Provide { debounce: { wait: 0 } } to disable debounce.
       debounce: {
         leading: false,
@@ -334,6 +335,7 @@ void watch({
   ],
 });
 
+// SIGINT is the signal sent when we press Ctrl+C
 process.on('SIGINT', () => {
   abortController.abort();
 });
