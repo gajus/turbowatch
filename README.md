@@ -8,7 +8,7 @@ Refer to recipes:
 * [Restarting server when file changes are detected](#restarting-server-when-file-changes-are-detected)
 * [Retrying failing triggers](#retrying-failing-triggers)
 * [Handling the `AbortSignal`](#handling-the-abortsignal)
-* [Tearing down](#tearing-down)
+* [Tearing down project](#tearing-down-project)
 * [Throttling `spawn` output](#throttling-spawn-output)
 
 [Turbowatch vs Alternatives](#alternatives)
@@ -279,7 +279,7 @@ void watch({
 });
 ```
 
-### Tearing down
+### Tearing down project
 
 `onTeardown` is going to be called when Turbowatch is gracefully terminated. Use it to "clean up" the project if necessary.
 
