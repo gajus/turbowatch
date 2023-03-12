@@ -60,7 +60,7 @@ export const watch = (configurationInput: ConfigurationInput) => {
         response.relative_path,
       );
 
-      const subscriptions: Array<Promise<null>> = [];
+      const subscriptions: Array<Promise<void>> = [];
 
       for (const trigger of triggers) {
         subscriptions.push(
