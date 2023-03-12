@@ -17,7 +17,7 @@ Refer to recipes:
 
 ## API
 
-Turbowatch defaults are a good choice for most projects. However, Turbowatch has many options that you should be familiar with.
+Turbowatch [defaults](#recipes) are a good choice for most projects. However, Turbowatch has _many_ options that you should be familiar with for advance use cases.
 
 ```ts
 import {
