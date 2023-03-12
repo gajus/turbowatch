@@ -226,6 +226,10 @@ export const subscribe = async (
       trigger.abortSignal?.addEventListener(
         'abort',
         () => {
+          client.command(['unsubscribe', trigger.watch, trigger.id], () => {
+            log.debug('unsubscribed');
+          });
+
           if (activeTask?.promise) {
             // eslint-disable-next-line promise/prefer-await-to-then
             activeTask?.promise.finally(() => {

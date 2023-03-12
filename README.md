@@ -155,9 +155,6 @@ void watch({
   triggers: [
     {
       expression: ['match', '*.ts', 'basename'],
-      // Because of this setting, Turbowatch will wait for the `build` trigger
-      // to complete before re-running the trigger routine.
-      interruptible: false,
       name: 'build',
       onChange: async ({ spawn }) => {
         await spawn`tsc`;
