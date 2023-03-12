@@ -2,6 +2,8 @@
 
 Extremely fast file change detector and task orchestrator for Node.js.
 
+If you ever wanted something like [Nodemon](https://nodemon.io/) but more capable, then you are at the right place.
+
 Refer to recipes:
 
 * [Rebuilding assets when file changes are detected](#rebuilding-assets-when-file-changes-are-detected)
