@@ -26,16 +26,6 @@ export const subscribe = (
   trigger: Trigger,
 ): Promise<null> => {
   return new Promise((resolve, reject) => {
-    trigger.abortSignal?.addEventListener(
-      'abort',
-      () => {
-        resolve(null);
-      },
-      {
-        once: true,
-      },
-    );
-
     client.command(
       [
         'subscribe',
@@ -231,5 +221,22 @@ export const subscribe = (
 
       handleSubscriptionEvent(event);
     });
+
+    trigger.abortSignal?.addEventListener(
+      'abort',
+      () => {
+        if (activeTask?.promise) {
+          // eslint-disable-next-line promise/prefer-await-to-then
+          activeTask?.promise.finally(() => {
+            resolve(null);
+          });
+        } else {
+          resolve(null);
+        }
+      },
+      {
+        once: true,
+      },
+    );
   });
 };

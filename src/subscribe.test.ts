@@ -77,9 +77,11 @@ it('evaluates onChange', async () => {
     .expects('on')
     .once()
     .callsFake((event, callback) => {
-      callback({
-        files: [],
-        subscription: 'foo',
+      setImmediate(() => {
+        callback({
+          files: [],
+          subscription: 'foo',
+        });
       });
     });
 
@@ -364,4 +366,57 @@ it('reports { first: true } only for the first event', async () => {
   ]);
 
   expect(subscriptionMock.verify());
+});
+
+it('waits for onChange to complete before resolving when it receives a shutdown signal', async () => {
+  const abortController = new AbortController();
+
+  const client = {
+    command: () => {},
+    on: () => {},
+  } as unknown as WatchmanClient;
+  const trigger = {
+    ...defaultTrigger,
+    abortSignal: abortController.signal,
+  } as Trigger;
+
+  let resolved = false;
+
+  const subscriptionMock = sinon.mock(trigger);
+
+  subscriptionMock
+    .expects('onChange')
+    .once()
+    .callsFake(() => {
+      return new Promise((resolve) => {
+        setTimeout(() => {
+          resolved = true;
+
+          resolve(null);
+        }, 1_000);
+      });
+    });
+
+  const clientMock = sinon.mock(client);
+
+  clientMock
+    .expects('on')
+    .once()
+    .callsFake((event, callback) => {
+      callback({
+        files: [],
+        subscription: 'foo',
+      });
+    });
+
+  setImmediate(() => {
+    abortController.abort();
+  });
+
+  await subscribe(client, trigger);
+
+  expect(clientMock.verify());
+  expect(subscriptionMock.verify());
+
+  expect(resolved).toBe(true);
 });
