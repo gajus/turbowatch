@@ -1,8 +1,23 @@
 import { subscribe } from './subscribe';
-import { type Trigger, type WatchmanClient } from './types';
+import { type Trigger } from './types';
+import { EventEmitter } from 'events';
 import { setTimeout } from 'node:timers';
 import * as sinon from 'sinon';
 import { expect, it } from 'vitest';
+
+class Client extends EventEmitter {
+  public cancelCommands() {}
+
+  public capabilityCheck() {}
+
+  public command() {}
+
+  public connect() {}
+
+  public end() {}
+
+  public sendNextCommand() {}
+}
 
 const defaultTrigger = {
   expression: ['match', 'foo', 'basename'],
@@ -27,9 +42,7 @@ const wait = (time: number) => {
 };
 
 it('rejects promise if Watchman "subscribe" command produces an error', async () => {
-  const client = {
-    command: () => {},
-  } as unknown as WatchmanClient;
+  const client = new Client();
   const trigger = {
     ...defaultTrigger,
   } as Trigger;
@@ -51,10 +64,7 @@ it('rejects promise if Watchman "subscribe" command produces an error', async ()
 it('evaluates onChange', async () => {
   const abortController = new AbortController();
 
-  const client = {
-    command: () => {},
-    on: () => {},
-  } as unknown as WatchmanClient;
+  const client = new Client();
   const trigger = {
     ...defaultTrigger,
     abortSignal: abortController.signal,
@@ -96,10 +106,7 @@ it('evaluates onChange', async () => {
 it('evaluates multiple onChange', async () => {
   const abortController = new AbortController();
 
-  const client = {
-    command: () => {},
-    on: () => {},
-  } as unknown as WatchmanClient;
+  const client = new Client();
   const trigger = {
     ...defaultTrigger,
     abortSignal: abortController.signal,
@@ -148,10 +155,7 @@ it('evaluates multiple onChange', async () => {
 it('debounces onChange', async () => {
   const abortController = new AbortController();
 
-  const client = {
-    command: () => {},
-    on: () => {},
-  } as unknown as WatchmanClient;
+  const client = new Client();
   const trigger = {
     ...defaultTrigger,
     abortSignal: abortController.signal,
@@ -199,10 +203,7 @@ it('debounces onChange', async () => {
 it('waits for onChange to complete when { interruptible: false }', async () => {
   const abortController = new AbortController();
 
-  const client = {
-    command: () => {},
-    on: () => {},
-  } as unknown as WatchmanClient;
+  const client = new Client();
   const trigger = {
     ...defaultTrigger,
     abortSignal: abortController.signal,
@@ -248,10 +249,7 @@ it('waits for onChange to complete when { interruptible: false }', async () => {
 it('throws if onChange produces an error', async () => {
   const abortController = new AbortController();
 
-  const client = {
-    command: () => {},
-    on: () => {},
-  } as unknown as WatchmanClient;
+  const client = new Client();
   const trigger = {
     ...defaultTrigger,
     abortSignal: abortController.signal,
@@ -278,10 +276,7 @@ it('throws if onChange produces an error', async () => {
 it('retries failing routines', async () => {
   const abortController = new AbortController();
 
-  const client = {
-    command: () => {},
-    on: () => {},
-  } as unknown as WatchmanClient;
+  const client = new Client();
   const trigger = {
     ...defaultTrigger,
     abortSignal: abortController.signal,
@@ -316,10 +311,7 @@ it('retries failing routines', async () => {
 it('reports { first: true } only for the first event', async () => {
   const abortController = new AbortController();
 
-  const client = {
-    command: () => {},
-    on: () => {},
-  } as unknown as WatchmanClient;
+  const client = new Client();
   const trigger = {
     ...defaultTrigger,
     abortSignal: abortController.signal,
@@ -371,10 +363,7 @@ it('reports { first: true } only for the first event', async () => {
 it('waits for onChange to complete before resolving when it receives a shutdown signal', async () => {
   const abortController = new AbortController();
 
-  const client = {
-    command: () => {},
-    on: () => {},
-  } as unknown as WatchmanClient;
+  const client = new Client();
   const trigger = {
     ...defaultTrigger,
     abortSignal: abortController.signal,
