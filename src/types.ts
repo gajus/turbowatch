@@ -129,6 +129,15 @@ export type ChangeEvent = {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type OnChangeEventHandler = (event: ChangeEvent) => Promise<any>;
 
+export type TeardownEvent = {
+  spawn: (
+    pieces: TemplateStringsArray,
+    ...args: any[]
+  ) => Promise<ProcessOutput>;
+};
+
+type OnTeardownEventHandler = (event: TeardownEvent) => Promise<void>;
+
 /**
  * @property factor The exponential factor to use. Default is 2.
  * @property maxTimeout The maximum number of milliseconds between two retries. Default is Infinity.
@@ -164,6 +173,7 @@ type TriggerInput = {
   interruptible?: boolean;
   name: string;
   onChange: OnChangeEventHandler;
+  onTeardown?: OnTeardownEventHandler;
   persistent?: boolean;
   retry?: Retry;
   throttleOutput?: Throttle;
@@ -177,6 +187,7 @@ export type Trigger = {
   interruptible: boolean;
   name: string;
   onChange: OnChangeEventHandler;
+  onTeardown?: OnTeardownEventHandler;
   relativePath: string;
   retry: Retry;
   throttleOutput: Throttle;

@@ -55,6 +55,10 @@ void watch({
         await spawn`tsc`;
         await spawn`tsc-alias`;
       },
+      // Routine that is executed when shutdown signal is received.
+      onTeardown: async ({ spawn }) => {
+        await spawn`rm -fr ./dist`;
+      },
       // Label a task as persistent if it is a long-running process, such as a dev server or --watch mode.
       persistent: false,
       // Retry a task if it fails. Otherwise, watch program will throw an error if trigger fails.

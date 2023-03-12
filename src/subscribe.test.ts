@@ -25,6 +25,7 @@ const defaultTrigger = {
   interruptible: false,
   name: 'foo',
   onChange: async () => {},
+  onTeardown: async () => {},
   relativePath: 'foo',
   retry: {
     retries: 0,
@@ -382,7 +383,64 @@ it('waits for onChange to complete before resolving when it receives a shutdown 
           resolved = true;
 
           resolve(null);
-        }, 1_000);
+        }, 100);
+      });
+    });
+
+  const clientMock = sinon.mock(client);
+
+  clientMock
+    .expects('on')
+    .once()
+    .callsFake((event, callback) => {
+      callback({
+        files: [],
+        subscription: 'foo',
+      });
+    });
+
+  setImmediate(() => {
+    abortController.abort();
+  });
+
+  await subscribe(client, trigger);
+
+  expect(clientMock.verify());
+  expect(subscriptionMock.verify());
+
+  expect(resolved).toBe(true);
+});
+
+it('waits for onTeardown to complete before resolving when it receives a shutdown signal', async () => {
+  const abortController = new AbortController();
+
+  const client = new Client();
+  const trigger = {
+    ...defaultTrigger,
+    abortSignal: abortController.signal,
+  } as Trigger;
+
+  let resolved = false;
+
+  const subscriptionMock = sinon.mock(trigger);
+
+  subscriptionMock
+    .expects('onChange')
+    .once()
+    .callsFake(() => {
+      return null;
+    });
+
+  subscriptionMock
+    .expects('onTeardown')
+    .once()
+    .callsFake(() => {
+      return new Promise((resolve) => {
+        setTimeout(() => {
+          resolved = true;
+
+          resolve(null);
+        }, 100);
       });
     });
 

@@ -72,6 +72,7 @@ export const watch = (configurationInput: ConfigurationInput) => {
             interruptible: trigger.interruptible ?? true,
             name: trigger.name,
             onChange: trigger.onChange,
+            onTeardown: trigger.onTeardown,
             relativePath: response.relative_path,
             retry: trigger.retry ?? {
               factor: 2,

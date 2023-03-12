@@ -21,222 +21,234 @@ type SubscriptionEvent = {
   warning?: string;
 };
 
-export const subscribe = (
+export const subscribe = async (
   client: WatchmanClient,
   trigger: Trigger,
-): Promise<null> => {
-  return new Promise((resolve, reject) => {
-    client.command(
-      [
-        'subscribe',
-        trigger.watch,
-        trigger.id,
-        {
-          expression: trigger.expression,
-          fields: ['name', 'size', 'mtime_ms', 'exists', 'type'],
-          relative_root: trigger.relativePath,
+): Promise<void> => {
+  try {
+    await new Promise((resolve, reject) => {
+      client.command(
+        [
+          'subscribe',
+          trigger.watch,
+          trigger.id,
+          {
+            expression: trigger.expression,
+            fields: ['name', 'size', 'mtime_ms', 'exists', 'type'],
+            relative_root: trigger.relativePath,
+          },
+        ],
+        (error, response: WatchmanEvent & { subscribe: string }) => {
+          if (error) {
+            reject(error);
+
+            return;
+          }
+
+          log.info('subscription %s established', response.subscribe);
         },
-      ],
-      (error, response: WatchmanEvent & { subscribe: string }) => {
-        if (error) {
-          reject(error);
+      );
+
+      /**
+       * @property queued Indicates that a follow action has been queued.
+       */
+      type ActiveTask = {
+        abortController: AbortController | null;
+        id: string;
+        promise: Promise<unknown>;
+        queued: boolean;
+      };
+
+      let activeTask: ActiveTask | null = null;
+
+      let first = true;
+
+      let handleSubscriptionEvent = async (event: SubscriptionEvent) => {
+        if (trigger.abortSignal?.aborted) {
+          log.warn('ignoring event because Turbowatch is shutting down');
 
           return;
         }
 
-        log.info('subscription %s established', response.subscribe);
-      },
-    );
-
-    /**
-     * @property queued Indicates that a follow action has been queued.
-     */
-    type ActiveTask = {
-      abortController: AbortController | null;
-      id: string;
-      promise: Promise<unknown>;
-      queued: boolean;
-    };
-
-    let activeTask: ActiveTask | null = null;
-
-    let first = true;
-
-    let handleSubscriptionEvent = async (event: SubscriptionEvent) => {
-      if (trigger.abortSignal?.aborted) {
-        log.warn('ignoring event because Turbowatch is shutting down');
-
-        return;
-      }
-
-      if (event.files.length > 10) {
-        log.trace(
-          {
-            files: event.files.slice(0, 10).map((file) => {
-              return file.name;
-            }),
-          },
-          '%d files changed; showing first 10',
-          event.files.length,
-        );
-      } else {
-        log.trace(
-          {
-            files: event.files.map((file) => {
-              return file.name;
-            }),
-          },
-          '%d files changed',
-          event.files.length,
-        );
-      }
-
-      let reportFirst = first;
-
-      if (first) {
-        reportFirst = true;
-        first = false;
-      }
-
-      let controller: AbortController | null = null;
-
-      if (trigger.interruptible) {
-        controller = new AbortController();
-      }
-
-      let abortSignal = controller?.signal;
-
-      if (abortSignal && trigger.abortSignal) {
-        trigger.abortSignal.addEventListener('abort', () => {
-          controller?.abort();
-        });
-      } else if (trigger.abortSignal) {
-        abortSignal = trigger.abortSignal;
-      }
-
-      if (activeTask) {
-        if (trigger.interruptible) {
-          log.warn('aborted task %s (%s)', trigger.name, activeTask.id);
-
-          if (!activeTask.abortController) {
-            throw new Error('Expected abort controller to be set');
-          }
-
-          activeTask.abortController.abort();
-
-          activeTask = null;
-        } else {
-          log.warn(
-            'waiting for %s (%s) task to complete',
-            trigger.name,
-            activeTask.id,
+        if (event.files.length > 10) {
+          log.trace(
+            {
+              files: event.files.slice(0, 10).map((file) => {
+                return file.name;
+              }),
+            },
+            '%d files changed; showing first 10',
+            event.files.length,
           );
-
-          if (activeTask.queued) {
-            return;
-          }
-
-          activeTask.queued = true;
-
-          try {
-            await activeTask.promise;
-          } catch {
-            // nothing to do
-          }
+        } else {
+          log.trace(
+            {
+              files: event.files.map((file) => {
+                return file.name;
+              }),
+            },
+            '%d files changed',
+            event.files.length,
+          );
         }
-      }
 
-      const taskId = generateShortId();
+        let reportFirst = first;
 
-      const taskPromise = retry(
-        (attempt: number) => {
-          return trigger.onChange({
-            abortSignal,
-            attempt,
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            files: event.files.map((file: any) => {
-              return {
-                exists: file.exists,
-                mtime: file.mtime_ms,
-                name: path.join(event.root, file.name),
-                size: file.size,
-              };
-            }),
-            first: reportFirst,
-            spawn: createSpawn(taskId, {
-              abortSignal,
-              throttleOutput: trigger.throttleOutput,
-            }),
-            taskId,
-            warning: event.warning ?? null,
+        if (first) {
+          reportFirst = true;
+          first = false;
+        }
+
+        let controller: AbortController | null = null;
+
+        if (trigger.interruptible) {
+          controller = new AbortController();
+        }
+
+        let abortSignal = controller?.signal;
+
+        if (abortSignal && trigger.abortSignal) {
+          trigger.abortSignal.addEventListener('abort', () => {
+            controller?.abort();
           });
-        },
-        {
-          ...trigger.retry,
-          onFailedAttempt: ({ retriesLeft }) => {
-            if (retriesLeft > 0) {
-              log.warn('retrying task %s (%s)...', trigger.name, taskId);
+        } else if (trigger.abortSignal) {
+          abortSignal = trigger.abortSignal;
+        }
+
+        if (activeTask) {
+          if (trigger.interruptible) {
+            log.warn('aborted task %s (%s)', trigger.name, activeTask.id);
+
+            if (!activeTask.abortController) {
+              throw new Error('Expected abort controller to be set');
             }
-          },
-        },
-      )
-        // eslint-disable-next-line promise/prefer-await-to-then
-        .then(() => {
-          if (taskId === activeTask?.id) {
-            log.trace('completed task %s (%s)', trigger.name, taskId);
+
+            activeTask.abortController.abort();
 
             activeTask = null;
-          }
-        })
-        // eslint-disable-next-line promise/prefer-await-to-then
-        .catch((error) => {
-          reject(error);
-        });
+          } else {
+            log.warn(
+              'waiting for %s (%s) task to complete',
+              trigger.name,
+              activeTask.id,
+            );
 
-      // eslint-disable-next-line require-atomic-updates
-      activeTask = {
-        abortController: controller,
-        id: taskId,
-        promise: taskPromise,
-        queued: false,
+            if (activeTask.queued) {
+              return;
+            }
+
+            activeTask.queued = true;
+
+            try {
+              await activeTask.promise;
+            } catch {
+              // nothing to do
+            }
+          }
+        }
+
+        const taskId = generateShortId();
+
+        const taskPromise = retry(
+          (attempt: number) => {
+            return trigger.onChange({
+              abortSignal,
+              attempt,
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              files: event.files.map((file: any) => {
+                return {
+                  exists: file.exists,
+                  mtime: file.mtime_ms,
+                  name: path.join(event.root, file.name),
+                  size: file.size,
+                };
+              }),
+              first: reportFirst,
+              spawn: createSpawn(taskId, {
+                abortSignal,
+                throttleOutput: trigger.throttleOutput,
+              }),
+              taskId,
+              warning: event.warning ?? null,
+            });
+          },
+          {
+            ...trigger.retry,
+            onFailedAttempt: ({ retriesLeft }) => {
+              if (retriesLeft > 0) {
+                log.warn('retrying task %s (%s)...', trigger.name, taskId);
+              }
+            },
+          },
+        )
+          // eslint-disable-next-line promise/prefer-await-to-then
+          .then(() => {
+            if (taskId === activeTask?.id) {
+              log.trace('completed task %s (%s)', trigger.name, taskId);
+
+              activeTask = null;
+            }
+          })
+          // eslint-disable-next-line promise/prefer-await-to-then
+          .catch((error) => {
+            reject(error);
+          });
+
+        // eslint-disable-next-line require-atomic-updates
+        activeTask = {
+          abortController: controller,
+          id: taskId,
+          promise: taskPromise,
+          queued: false,
+        };
+
+        log.trace('started task %s (%s)', trigger.name, taskId);
       };
 
-      log.trace('started task %s (%s)', trigger.name, taskId);
-    };
-
-    if (trigger.debounce) {
-      handleSubscriptionEvent = debounce(
-        trigger.debounce.wait,
-        handleSubscriptionEvent,
-        {
-          atBegin: trigger.debounce.leading,
-        },
-      );
-    }
-
-    client.on('subscription', async (event: SubscriptionEvent) => {
-      if (event.subscription !== trigger.id) {
-        return;
+      if (trigger.debounce) {
+        handleSubscriptionEvent = debounce(
+          trigger.debounce.wait,
+          handleSubscriptionEvent,
+          {
+            atBegin: trigger.debounce.leading,
+          },
+        );
       }
 
-      handleSubscriptionEvent(event);
-    });
-
-    trigger.abortSignal?.addEventListener(
-      'abort',
-      () => {
-        if (activeTask?.promise) {
-          // eslint-disable-next-line promise/prefer-await-to-then
-          activeTask?.promise.finally(() => {
-            resolve(null);
-          });
-        } else {
-          resolve(null);
+      client.on('subscription', async (event: SubscriptionEvent) => {
+        if (event.subscription !== trigger.id) {
+          return;
         }
-      },
-      {
-        once: true,
-      },
-    );
-  });
+
+        handleSubscriptionEvent(event);
+      });
+
+      trigger.abortSignal?.addEventListener(
+        'abort',
+        () => {
+          if (activeTask?.promise) {
+            // eslint-disable-next-line promise/prefer-await-to-then
+            activeTask?.promise.finally(() => {
+              resolve(null);
+            });
+          } else {
+            resolve(null);
+          }
+        },
+        {
+          once: true,
+        },
+      );
+    });
+  } finally {
+    if (trigger.onTeardown) {
+      const taskId = generateShortId();
+
+      await trigger.onTeardown({
+        spawn: createSpawn(taskId, {
+          throttleOutput: trigger.throttleOutput,
+        }),
+      });
+    }
+  }
 };
