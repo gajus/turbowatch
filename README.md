@@ -8,6 +8,7 @@ Refer to recipes:
 * [Restarting server when file changes are detected](#restarting-server-when-file-changes-are-detected)
 * [Retrying failing triggers](#retrying-failing-triggers)
 * [Handling the `AbortSignal`](#handling-the-abortsignal)
+* [Tearing down](#tearing-down)
 * [Throttling `spawn` output](#throttling-spawn-output)
 
 [Turbowatch vs Alternatives](#alternatives)
@@ -151,10 +152,7 @@ void watch({
   project: __dirname,
   triggers: [
     {
-      expression: [
-        'anyof',
-        ['match', '*.ts', 'basename'],
-      ],
+      expression: ['match', '*.ts', 'basename'],
       // Because of this setting, Turbowatch will wait for the `build` trigger
       // to complete before re-running the trigger routine.
       interruptible: false,
@@ -230,7 +228,7 @@ The default configuration will retry a failing trigger up to 10 times. Retries c
 
 ### Handling the `AbortSignal`
 
-> **Note** Turbowatch already comes with `zx` bound to the `AbortSignal`. Just use `spawn`. Documentation demonstrates how to implement equivalent functionality.
+> **Note** Turbowatch already comes with [`zx`](https://npmjs.com/zx) bound to the `AbortSignal`. Just use `spawn`. Documentation demonstrates how to implement equivalent functionality.
 
 Implementing interruptible workflows requires that you define `AbortSignal` handler. If you are using [`zx`](https://npmjs.com/zx), such abstraction could look like so:
 
@@ -270,7 +268,7 @@ void watch({
   project: __dirname,
   triggers: [
     {
-      expression: ['allof', ['match', '*.ts']],
+      expression: ['match', '*.ts', 'basename'],
       interruptible: false,
       name: 'sleep',
       onChange: async ({ abortSignal }) => {
@@ -278,6 +276,39 @@ void watch({
       },
     },
   ],
+});
+```
+
+### Tearing down
+
+`onTeardown` is going to be called when Turbowatch is gracefully terminated. Use it to "clean up" the project if necessary.
+
+> **Warning** There is no timeout for `onTeardown`.
+
+```ts
+import { watch } from 'turbowatch';
+
+const abortController = new AbortController();
+
+void watch({
+  abortSignal: abortController.signal,
+  project: __dirname,
+  triggers: [
+    {
+      expression: ['match', '*.ts', 'basename'],
+      name: 'build',
+      onChange: async ({ spawn }) => {
+        await spawn`tsc`;
+      },
+      onTeardown: async () => {
+        await spawn`rm -fr ./dist`;
+      },
+    },
+  ],
+});
+
+process.on('SIGINT', () => {
+  abortController.abort();
 });
 ```
 
@@ -325,8 +356,8 @@ Use `AbortController` to terminate Turbowatch:
 const abortController = new AbortController();
 
 void watch({
-  project: __dirname,
   abortSignal: abortController.signal,
+  project: __dirname,
   triggers: [
     {
       name: 'test',
