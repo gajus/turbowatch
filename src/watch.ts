@@ -14,9 +14,29 @@ const log = Logger.child({
 });
 
 export const watch = (configurationInput: ConfigurationInput) => {
-  const { project, triggers, abortSignal }: Configuration = {
+  const {
+    project,
+    triggers,
+    abortSignal: userAbortSignal,
+  }: Configuration = {
     ...configurationInput,
   };
+
+  let abortSignal = userAbortSignal;
+
+  if (!abortSignal) {
+    log.warn('binding graceful shutdown to SIGINT');
+
+    const abortController = new AbortController();
+
+    process.once('SIGINT', () => {
+      log.warn('received SIGINT; gracefully terminating');
+
+      abortController.abort();
+    });
+
+    abortSignal = abortController.signal;
+  }
 
   const client = new Client();
 

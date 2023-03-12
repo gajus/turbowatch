@@ -9,6 +9,7 @@ Refer to recipes:
 * [Rebuilding assets when file changes are detected](#rebuilding-assets-when-file-changes-are-detected)
 * [Restarting server when file changes are detected](#restarting-server-when-file-changes-are-detected)
 * [Retrying failing triggers](#retrying-failing-triggers)
+* [Gracefully terminating Turbowatch](#gracefully-terminating-turbowatch)
 * [Handling the `AbortSignal`](#handling-the-abortsignal)
 * [Tearing down project](#tearing-down-project)
 * [Throttling `spawn` output](#throttling-spawn-output)
@@ -26,6 +27,10 @@ import {
 } from 'turbowatch';
 
 void watch({
+  // AbortController used to gracefully terminate the service.
+  // If none is provided, then Turbowatch will gracefully terminate
+  // the service when it receives SIGINT.
+  abortSignal: new AbortController().signal,
   // The base directory under which all files are matched.
   // Note: This is different from the "root project" (https://github.com/gajus/turbowatch#project-root).
   project: __dirname,
@@ -225,11 +230,48 @@ The default configuration will retry a failing trigger up to 10 times. Retries c
 },
 ```
 
+### Gracefully terminating Turbowatch
+
+`AbortController` is used to gracefully terminate Turbowatch.
+
+If none is provided, then Turbowatch will gracefully terminate the service when it receives [SIGINT](https://nodejs.org/api/process.html#signal-events) signal.
+
+```ts
+const abortController = new AbortController();
+
+void watch({
+  abortSignal: abortController.signal,
+  project: __dirname,
+  triggers: [
+    {
+      name: 'test',
+      expression: ['match', '*', 'basename'],
+      onChange: async ({ spawn }) => {
+        // `sleep 60` will receive `SIGTERM` as soon as `abortController.abort()` is called.
+        await spawn`sleep 60`;
+      },
+    }
+  ],
+});
+
+// SIGINT is the signal sent when we press Ctrl+C
+process.once('SIGINT', () => {
+  abortController.abort();
+});
+```
+
+The abort signal will propagate to all `onChange` handlers. The processes that were initiated using `spawn` will receive `SIGTERM` signal.
+
 ### Handling the `AbortSignal`
 
-> **Note** Turbowatch already comes with [`zx`](https://npmjs.com/zx) bound to the `AbortSignal`. Just use `spawn`. Documentation demonstrates how to implement equivalent functionality.
+Workflow might be interrupted in two scenarios:
+
+* when Turbowatch is being gracefully shutdown
+* when routine is marked as `interruptible` and a new file change is detected
 
 Implementing interruptible workflows requires that you define `AbortSignal` handler. If you are using [`zx`](https://npmjs.com/zx), such abstraction could look like so:
+
+> **Note** Turbowatch already comes with [`zx`](https://npmjs.com/zx) bound to the `AbortSignal`. Just use `spawn`. Documentation demonstrates how to implement equivalent functionality.
 
 ```ts
 import { type ProcessPromise } from 'zx';
@@ -306,7 +348,7 @@ void watch({
   ],
 });
 
-process.on('SIGINT', () => {
+process.once('SIGINT', () => {
   abortController.abort();
 });
 ```
@@ -346,36 +388,6 @@ worker:dev: 2fb02d72 > [18:48:37.408]  95ms debug @utilities #waitFor: Waiting f
 ```
 
 However, this means that some logs might come out of order. To disable this feature, set `{ throttleOutput: { delay: 0 } }`.
-
-### Gracefully terminating Turbowatch
-
-Use `AbortController` to terminate Turbowatch:
-
-```ts
-const abortController = new AbortController();
-
-void watch({
-  abortSignal: abortController.signal,
-  project: __dirname,
-  triggers: [
-    {
-      name: 'test',
-      expression: ['match', '*', 'basename'],
-      onChange: async ({ spawn }) => {
-        // `sleep 60` will receive `SIGTERM` as soon as `abortController.abort()` is called.
-        await spawn`sleep 60`;
-      },
-    }
-  ],
-});
-
-// SIGINT is the signal sent when we press Ctrl+C
-process.on('SIGINT', () => {
-  abortController.abort();
-});
-```
-
-The abort signal will propagate to all `onChange` handlers. The processes that were initiated using `spawn` will receive `SIGTERM` signal.
 
 ### Logging
 
