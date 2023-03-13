@@ -101,8 +101,6 @@ A project is the logical root of a set of related files in a filesystem tree. [W
 
 By default, this will be the first path that has a `.git` directory. However, it can be overridden using [`.watchmanconfig`](https://facebook.github.io/watchman/docs/config.html).
 
-### Rationale
-
 > With a proliferation of tools that wish to take advantage of filesystem watching at different locations in a filesystem tree, it is possible and likely for those tools to establish multiple overlapping watches.
 >
 > Most systems have a finite limit on the number of directories that can be watched effectively; when that limit is exceeded the performance and reliability of filesystem watching is degraded, sometimes to the point that it ceases to function.
@@ -113,7 +111,24 @@ By default, this will be the first path that has a `.git` directory. However, it
 
 ## Motivation
 
-To have a single tool for watching files for changes and orchestrating all build tasks.
+To abstract the complexity of orchestrating file watch operations.
+
+For context, we are using [Turborepo](https://turbo.build/). The reason this project came to be is because Turborepo does not have "watch" mode (issue [#986](https://github.com/vercel/turbo/issues/986)).
+
+At first, we attempted to use a combination of `tsc --watch`, `concurrently` and `Nodemon`, but started to run into things breaking left and right, e.g.
+
+* services restarting prematurely (before all the assets are built)
+* services failing to gracefully shutdown and then failing to start, e.g. because ports are in use
+
+Furthermore, the setup for each workspace was repetitive and not straightforward, and debugging issues was not a great experience because you have many workspaces running in watch mode producing tons of logs. Many of the workspaces being dependencies of each other, this kept re-triggering watch operations causing the mentioned issues.
+
+In short, it quickly became clear that we need the ability to have more control over the orchestration of what/when needs to happen when files change.
+
+We started with a script. At first I added _debounce_. That improved things. Then I added _graceful termination_ logic, which mostly made everything work. We still had occasional failures due to out-of-order events, but adding _retry_ logic fixed that too... At the end, while we got everything to work, it took a lot of effort and it still was a collection of hacky scripts that are hard to maintain and debug.
+
+In the end, Turbowatch is a toolbox for orchestrating and debugging file watch operations based on everything we learned along the way.
+
+> **Note** If you are working on a very simple project, i.e. just one build step or just one watch operation, then **you don't need Turbowatch**. Turbowatch is designed for monorepos or otherwise complex workspaces where you have dozens or hundreds of build steps that depend on each other (e.g. building and re-building dependencies, building/starting/stopping Docker containers, populating data, sending notifications, etc).
 
 ## Use Cases
 
