@@ -484,6 +484,28 @@ Many tools provide built-in watch functionality, e.g. `tsc --watch`. However, th
 * Running many file watchers is inefficient and is probably draining your laptop's battery faster than you realize. Turbowatch uses a single server to watch all file changes.
 * Native tools do not allow to combine operations, e.g. If your build depends on `tsc` and `tsc-alias`, then you cannot combine them. Turbowatch allows you to chain arbitrary operations.
 
+> **Note** There are some valid use cases for using native watch mode (e.g. `next dev`). However, even in those cases you should consider wrapping those operations in Turbowatch for consistency, e.g.
+> ```ts
+> void watch({
+>   project: __dirname,
+>   triggers: [
+>     {
+>       expression: [
+>         'anyof',
+>         ['match', '*', 'basename'],
+>       ],
+>       // Marking this routine as non-interruptible will ensure that
+>       // next dev is not restarted when file changes are detected.
+>       interruptible: false,
+>       name: 'start-server',
+>       onChange: async ({ spawn }) => {
+>         await spawn`next dev`;
+>       },
+>     },
+>   ],
+> });
+> ```
+
 ### Why not concurrently?
 
 I have [seen](https://github.com/justkey007/tsc-alias#add-it-to-your-build-scripts-in-packagejson) [concurrently](https://github.com/open-cli-tools/concurrently) used to "chain" watch operations such as:
