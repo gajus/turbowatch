@@ -163,7 +163,50 @@ Match all files with `*.ts` extension, but exclude `index.ts`:
 ]
 ```
 
-This is the gist behind Watchman expressions. However, there are many more expressions. Inspect `Expression` type for further guidance or refer to [Watchman documentation](https://facebook.github.io/watchman/docs/install.html).
+This is the gist behind Watchman expressions. However, there are many more expressions. Inspect `Expression` type for further guidance.
+
+```ts
+type Expression =
+  // Evaluates as true if all of the grouped expressions also evaluated as true.
+  // https://facebook.github.io/watchman/docs/expr/allof.html
+  | ['allof', ...Expression[]]
+  // Evaluates as true if any of the grouped expressions also evaluated as true.
+  // https://facebook.github.io/watchman/docs/expr/anyof.html
+  | ['anyof', ...Expression[]]
+  // Evaluates as true if a given file has a matching parent directory.
+  // https://facebook.github.io/watchman/docs/expr/dirname.html
+  | ['dirname' | 'idirname', string, ['depth', RelationalOperator, number]]
+  // Evaluates as true if the file exists, has size 0 and is a regular file or directory.
+  // https://facebook.github.io/watchman/docs/expr/empty.html
+  | ['empty']
+  // Evaluates as true if the file exists.
+  // https://facebook.github.io/watchman/docs/expr/exists.html
+  | ['exists']
+  // Evaluates as true if a glob matches against the basename of the file.
+  // https://facebook.github.io/watchman/docs/expr/match.html
+  | ['match' | 'imatch', string | string[], 'basename' | 'wholename']
+  // Evaluates as true if file matches the exact string.
+  // https://facebook.github.io/watchman/docs/expr/name.html
+  | ['name', string, 'basename' | 'wholename']
+  // Evaluates as true if the sub-expression evaluated as false, i.e. inverts the sub-expression.
+  // https://facebook.github.io/watchman/docs/expr/not.html
+  | ['not', Expression]
+  // Evaluates as true if file matches a Perl Compatible Regular Expression.
+  // https://facebook.github.io/watchman/docs/expr/pcre.html
+  | ['pcre' | 'ipcre', string, 'basename' | 'wholename']
+  // Evaluates as true if the specified time property of the file is greater than the since value.
+  // https://facebook.github.io/watchman/docs/expr/since.html
+  | ['since', string | number, 'mtime' | 'ctime', 'oclock']
+  // Evaluates as true if the size of a (not deleted) file satisfies the condition.
+  // https://facebook.github.io/watchman/docs/expr/size.html
+  | ['size', RelationalOperator, number]
+  // Evaluates as true if the file suffix matches the second argument.
+  // https://facebook.github.io/watchman/docs/expr/suffix.html
+  | ['suffix', string | string[]]
+  // Evaluates as true if the type of the file matches that specified by the second argument.
+  // https://facebook.github.io/watchman/docs/expr/type.html
+  | ['type', FileType];
+```
 
 ## Recipes
 
