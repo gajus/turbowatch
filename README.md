@@ -14,7 +14,24 @@ Refer to recipes:
 * [Tearing down project](#tearing-down-project)
 * [Throttling `spawn` output](#throttling-spawn-output)
 
-[Turbowatch vs Alternatives](#alternatives)
+||Turbowatch|Nodemon|
+|---|---|---|
+|Node.js interface (sriptable)|✅|❌<sup>1</sup>|
+|Graceful termination (teardown)|✅|❌<sup>2</sup>|
+|Scriptable child processes (zx)|✅|❌|
+|Retries|✅|❌|
+|Debounce|✅|❌|
+|Interruptible workflows|✅|❌|
+|Concurrent workflows|✅|❌|
+|Log grouping|✅|❌|
+|Works with long-running processes|✅|✅|
+|Works with build utilities and REPLs|✅|✅|
+|Watch specific files or directories|✅|✅|
+|Ignoring specific files or directories|✅|✅|
+|Open source and available|✅|✅|
+
+<sup><sup>1</sup> Undocumented</sup><br>
+<sup><sup>2</sup> Nodemon only provides the ability to [send a custom signal](https://github.com/remy/nodemon#gracefully-reloading-down-your-script) to the worker.</sup><br>
 
 ## API
 
