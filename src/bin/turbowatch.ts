@@ -4,6 +4,7 @@
 
 import jiti from 'jiti';
 import { existsSync } from 'node:fs';
+import path from 'node:path';
 import { hideBin } from 'yargs/helpers';
 import yargs from 'yargs/yargs';
 
@@ -19,7 +20,7 @@ const main = () => {
     })
     .parseSync();
 
-  const scriptPath = argv.source as string;
+  const scriptPath = path.resolve(process.cwd(), argv.source as string);
 
   if (!existsSync(scriptPath)) {
     console.error('%s not found', scriptPath);
