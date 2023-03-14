@@ -16,7 +16,7 @@ Refer to recipes:
 
 ||Turbowatch|Nodemon|
 |---|---|---|
-|Node.js interface (sriptable)|✅|❌<sup>1</sup>|
+|Node.js interface (scriptable)|✅|❌<sup>1</sup>|
 |Graceful termination (teardown)|✅|❌<sup>2</sup>|
 |Scriptable child processes (zx)|✅|❌|
 |Retries|✅|❌|
