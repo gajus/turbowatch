@@ -20,17 +20,31 @@ const main = () => {
     })
     .parseSync();
 
-  const scriptPath = path.resolve(process.cwd(), argv.source as string);
+  let resolvedPath: string | undefined;
 
-  if (!existsSync(scriptPath)) {
-    console.error('%s not found', scriptPath);
+  const providedPath = path.resolve(process.cwd(), argv.source as string);
+
+  const possiblePaths = [providedPath];
+
+  if (path.extname(providedPath) === '') {
+    possiblePaths.push(providedPath + '.ts', providedPath + '.js');
+  }
+
+  for (const possiblePath of possiblePaths) {
+    if (existsSync(possiblePath)) {
+      resolvedPath = possiblePath;
+    }
+  }
+
+  if (!resolvedPath) {
+    console.error('%s not found', providedPath);
 
     process.exitCode = 1;
 
     return;
   }
 
-  jiti(__filename)(scriptPath);
+  jiti(__filename)(resolvedPath);
 };
 
 main();
