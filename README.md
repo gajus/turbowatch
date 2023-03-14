@@ -27,7 +27,7 @@ EOD
 npm exec turbowatch
 ```
 
-> **Note** See [logging](./logging) instructions to print logs that explain what Turbowatch is doing.
+> **Note** See [logging](#logging) instructions to print logs that explain what Turbowatch is doing.
 
 Refer to recipes:
 
