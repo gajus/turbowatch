@@ -27,6 +27,8 @@ EOD
 npm exec turbowatch
 ```
 
+> **Note** See [logging](./logging) instructions to print logs that explain what Turbowatch is doing.
+
 Refer to recipes:
 
 * [Rebuilding assets when file changes are detected](#rebuilding-assets-when-file-changes-are-detected)
@@ -496,7 +498,7 @@ Export `ROARR_LOG=true` environment variable to enable log printing to `stdout`.
 Use [@roarr/cli](https://github.com/gajus/roarr-cli) to pretty-print logs.
 
 ```bash
-tsx turbowatch.ts | roarr
+ROARR_LOG=true turbowatch | roarr
 ```
 
 ## Alternatives
