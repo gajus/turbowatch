@@ -4,6 +4,29 @@ Extremely fast file change detector and task orchestrator for Node.js.
 
 If you ever wanted something like [Nodemon](https://nodemon.io/) but more capable, then you are at the right place.
 
+Basic usage:
+
+```bash
+npm install turbowatch
+cat > turbowatch.ts <<'EOD'
+import { watch } from 'turbowatch';
+
+void watch({
+  project: __dirname,
+  triggers: [
+    {
+      expression: ['match', '*.ts', 'basename'],
+      name: 'build',
+      onChange: async ({ spawn }) => {
+        await spawn`tsc`;
+      },
+    },
+  ],
+});
+EOD
+npm exec turbowatch
+```
+
 Refer to recipes:
 
 * [Rebuilding assets when file changes are detected](#rebuilding-assets-when-file-changes-are-detected)

@@ -14,6 +14,7 @@ language: en
 version: '0.2'
 words:
   - gajus
+  - jiti
   - SIGINT
   - SIGTERM
   - turborepo
