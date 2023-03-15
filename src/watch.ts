@@ -1,13 +1,17 @@
 import { generateShortId } from './generateShortId';
 import { Logger } from './Logger';
 import { subscribe } from './subscribe';
+import { testExpression } from './testExpression';
 import {
+  type ChokidarEvent,
   type Configuration,
   type ConfigurationInput,
   type JsonObject,
+  type Subscription,
 } from './types';
-import { Client } from 'fb-watchman';
+import * as chokidar from 'chokidar';
 import { serializeError } from 'serialize-error';
+import { debounce } from 'throttle-debounce';
 
 const log = Logger.child({
   namespace: 'watch',
@@ -38,14 +42,29 @@ export const watch = (configurationInput: ConfigurationInput) => {
     abortSignal = abortController.signal;
   }
 
-  const client = new Client();
-
   return new Promise((resolve, reject) => {
+    const subscriptions: Subscription[] = [];
+
+    const watcher = chokidar.watch(project);
+
+    const close = async () => {
+      for (const subscription of subscriptions) {
+        const { activeTask } = subscription;
+
+        if (activeTask?.promise) {
+          await activeTask?.promise;
+        }
+      }
+
+      // eslint-disable-next-line promise/prefer-await-to-then
+      await watcher.close().then(resolve).catch(reject);
+    };
+
     if (abortSignal) {
       abortSignal.addEventListener(
         'abort',
         () => {
-          client.end();
+          close();
         },
         {
           once: true,
@@ -53,61 +72,68 @@ export const watch = (configurationInput: ConfigurationInput) => {
       );
     }
 
-    client.command(['watch-project', project], (error, response) => {
-      if (error) {
-        log.error(
-          {
-            error: serializeError(error) as unknown as JsonObject,
-          },
-          'could not watch project',
-        );
-
-        reject(error);
-
-        client.end();
-
-        return;
-      }
-
-      if ('warning' in response) {
-        // eslint-disable-next-line no-console
-        console.warn(response.warning);
-      }
-
-      log.info(
-        'watch established on %s relative_path %s',
-        response.watch,
-        response.relative_path,
+    watcher.on('error', (error) => {
+      log.error(
+        {
+          error: serializeError(error) as unknown as JsonObject,
+        },
+        'could not watch project',
       );
 
-      const subscriptions: Array<Promise<void>> = [];
+      close();
+    });
 
-      for (const trigger of triggers) {
-        subscriptions.push(
-          subscribe(client, {
-            abortSignal,
-            debounce: trigger.debounce,
-            expression: trigger.expression,
-            id: generateShortId(),
-            interruptible: trigger.interruptible ?? true,
-            name: trigger.name,
-            onChange: trigger.onChange,
-            onTeardown: trigger.onTeardown,
-            relativePath: response.relative_path,
-            retry: trigger.retry ?? {
-              factor: 2,
-              maxTimeout: Number.POSITIVE_INFINITY,
-              minTimeout: 1_000,
-              retries: 10,
-            },
-            throttleOutput: trigger.throttleOutput ?? { delay: 1_000 },
-            watch: response.watch,
-          }),
-        );
+    for (const trigger of triggers) {
+      subscriptions.push(
+        subscribe({
+          abortSignal,
+          expression: trigger.expression,
+          id: generateShortId(),
+          interruptible: trigger.interruptible ?? true,
+          name: trigger.name,
+          onChange: trigger.onChange,
+          onTeardown: trigger.onTeardown,
+          retry: trigger.retry ?? {
+            factor: 2,
+            maxTimeout: Number.POSITIVE_INFINITY,
+            minTimeout: 1_000,
+            retries: 10,
+          },
+          throttleOutput: trigger.throttleOutput ?? { delay: 1_000 },
+        }),
+      );
+    }
+
+    let queuedChokidarEvents: ChokidarEvent[] = [];
+
+    const evaluateSubscribers = debounce(100, () => {
+      const currentChokidarEvents =
+        queuedChokidarEvents as readonly ChokidarEvent[];
+
+      queuedChokidarEvents = [];
+
+      for (const subscription of subscriptions) {
+        const relevantEvents = currentChokidarEvents.filter((chokidarEvent) => {
+          return testExpression(subscription.expression, chokidarEvent.path);
+        });
+
+        if (relevantEvents.length) {
+          subscription.trigger(relevantEvents);
+        }
       }
+    });
 
-      // eslint-disable-next-line promise/prefer-await-to-then
-      Promise.all(subscriptions).then(resolve).catch(reject);
+    watcher.on('ready', () => {
+      log.info('Initial scan complete. Ready for changes');
+
+      watcher.on('all', (event, path) => {
+        queuedChokidarEvents.push({
+          event,
+          path,
+        });
+
+        evaluateSubscribers();
+      });
     });
   });
 };

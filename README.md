@@ -73,25 +73,26 @@ void watch({
   // If none is provided, then Turbowatch will gracefully terminate
   // the service when it receives SIGINT.
   abortSignal: new AbortController().signal,
+  // Debounces triggers by 100 milliseconds.
+  // Most multi-file spanning changes are non-atomic. Therefore, it is typically desirable to
+  // batch together information about multiple file changes that happened in short succession.
+  // Provide { debounce: { wait: 0 } } to disable debounce.
+  debounce: {
+    leading: false,
+    wait: 100,
+  },
   // The base directory under which all files are matched.
   // Note: This is different from the "root project" (https://github.com/gajus/turbowatch#project-root).
   project: __dirname,
   triggers: [
     {
-      // Expression match files based on name, file size, modification date, and other criteria.
-      // https://github.com/gajus/turbowatch#expressions-cheat-sheet
+      // Expression match files based on name.
+      // https://github.com/gajus/turbowatch#expressions
       expression: [
         'anyof',
         ['match', '*.ts', 'basename'],
         ['match', '*.tsx', 'basename'],
       ],
-      // Debounces trigger by 100 milliseconds.
-      // This is the default as it is often desirable to wait for several changes before re-running the trigger.
-      // Provide { debounce: { wait: 0 } } to disable debounce.
-      debounce: {
-        leading: false,
-        wait: 100,
-      },
       // Determines what to do if a new file change is detected while the trigger is executing.
       // If {interruptible: true}, then AbortSignal will abort the current onChange routine.
       // If {interruptible: false}, then Turbowatch will wait until the onChange routine completes.
@@ -119,20 +120,6 @@ void watch({
   ],
 });
 ```
-
-## Project root
-
-A project is the logical root of a set of related files in a filesystem tree. [Watchman](#why-not-use-watchman) uses it to consolidate watches.
-
-By default, this will be the first path that has a `.git` directory. However, it can be overridden using [`.watchmanconfig`](https://facebook.github.io/watchman/docs/config.html).
-
-> With a proliferation of tools that wish to take advantage of filesystem watching at different locations in a filesystem tree, it is possible and likely for those tools to establish multiple overlapping watches.
->
-> Most systems have a finite limit on the number of directories that can be watched effectively; when that limit is exceeded the performance and reliability of filesystem watching is degraded, sometimes to the point that it ceases to function.
->
-> It is therefore desirable to avoid this situation and consolidate the filesystem watches. Watchman offers the `watch-project` command to allow clients to opt-in to the watch consolidation behavior described below.
-
-– https://facebook.github.io/watchman/docs/cmd/watch-project.html
 
 ## Motivation
 
@@ -166,9 +153,9 @@ Turbowatch can be used to automate any sort of operations that need to happen in
 
 The `spawn` function that is exposed by `ChangeEvent` is used to evaluate shell commands. Behind the scenes it uses [zx](https://github.com/google/zx). The reason Turbowatch abstracts `zx` is to enable auto-termination of child-processes when triggers are configured to be `interruptible`.
 
-## Expressions Cheat Sheet
+## Expressions
 
-Expressions are used to match files. The most basic expression is [`match`](https://facebook.github.io/watchman/docs/expr/match.html) – it evaluates as true if a glob pattern matches the file, e.g.
+Expressions are used to match files. The most basic expression is `match` – it evaluates as true if a glob pattern matches the file, e.g.
 
 Match all files with `*.ts` extension:
 
@@ -176,7 +163,7 @@ Match all files with `*.ts` extension:
 ['match', '*.ts', 'basename']
 ```
 
-Expressions can be combined using [`allof`](https://facebook.github.io/watchman/docs/expr/allof.html) and [`anyof`](https://facebook.github.io/watchman/docs/expr/anyof.html) expressions, e.g.
+Expressions can be combined using `allof` and `anyof`, e.g.,
 
 Match all files with `*.ts` or `*.tsx` extensions:
 
@@ -188,7 +175,7 @@ Match all files with `*.ts` or `*.tsx` extensions:
 ]
 ```
 
-Finally, [`not`](https://facebook.github.io/watchman/docs/expr/not.html) evaluates as true if the sub-expression evaluated as false, i.e. inverts the sub-expression.
+Finally, `not` evaluates as true if the sub-expression evaluated as false, i.e. inverts the sub-expression.
 
 Match all files with `*.ts` extension, but exclude `index.ts`:
 
@@ -203,51 +190,23 @@ Match all files with `*.ts` extension, but exclude `index.ts`:
 ]
 ```
 
-This is the gist behind Watchman expressions. However, there are many more expressions. Inspect `Expression` type for further guidance.
+This is the gist behind Turbowatch expressions. However, there are many more expressions. Inspect `Expression` type for further guidance.
 
 ```ts
 type Expression =
   // Evaluates as true if all of the grouped expressions also evaluated as true.
-  // https://facebook.github.io/watchman/docs/expr/allof.html
   | ['allof', ...Expression[]]
   // Evaluates as true if any of the grouped expressions also evaluated as true.
-  // https://facebook.github.io/watchman/docs/expr/anyof.html
   | ['anyof', ...Expression[]]
   // Evaluates as true if a given file has a matching parent directory.
-  // https://facebook.github.io/watchman/docs/expr/dirname.html
   | ['dirname' | 'idirname', string]
-  | ['dirname' | 'idirname', string, ['depth', RelationalOperator, number]]
-  // Evaluates as true if the file exists, has size 0 and is a regular file or directory.
-  // https://facebook.github.io/watchman/docs/expr/empty.html
-  | ['empty']
-  // Evaluates as true if the file exists.
-  // https://facebook.github.io/watchman/docs/expr/exists.html
-  | ['exists']
   // Evaluates as true if a glob matches against the basename of the file.
-  // https://facebook.github.io/watchman/docs/expr/match.html
-  | ['match' | 'imatch', string | string[], 'basename' | 'wholename']
-  // Evaluates as true if file matches the exact string.
-  // https://facebook.github.io/watchman/docs/expr/name.html
-  | ['name', string, 'basename' | 'wholename']
+  | ['match' | 'imatch', string, 'basename' | 'wholename']
   // Evaluates as true if the sub-expression evaluated as false, i.e. inverts the sub-expression.
-  // https://facebook.github.io/watchman/docs/expr/not.html
-  | ['not', Expression]
-  // Evaluates as true if file matches a Perl Compatible Regular Expression.
-  // https://facebook.github.io/watchman/docs/expr/pcre.html
-  | ['pcre' | 'ipcre', string, 'basename' | 'wholename']
-  // Evaluates as true if the specified time property of the file is greater than the since value.
-  // https://facebook.github.io/watchman/docs/expr/since.html
-  | ['since', string | number, 'mtime' | 'ctime', 'oclock']
-  // Evaluates as true if the size of a (not deleted) file satisfies the condition.
-  // https://facebook.github.io/watchman/docs/expr/size.html
-  | ['size', RelationalOperator, number]
-  // Evaluates as true if the file suffix matches the second argument.
-  // https://facebook.github.io/watchman/docs/expr/suffix.html
-  | ['suffix', string | string[]]
-  // Evaluates as true if the type of the file matches that specified by the second argument.
-  // https://facebook.github.io/watchman/docs/expr/type.html
-  | ['type', FileType];
+  | ['not', Expression];
 ```
+
+> **Note** Turbowatch expressions are a subset of [Watchman expressions](https://facebook.github.io/watchman/docs/expr/allof.html). Originally, Turbowatch was developed to leverage Watchman as a superior backend for watching a large number of files. However, along the way, we discovered that Watchman does not support symbolic links (issue [#105](https://github.com/facebook/watchman/issues/105#issuecomment-1469496330)). Unfortunately, that makes Watchman unsuitable for projects that utilize linked dependencies (which is the direction in which the ecosystem is moving for dependency management in monorepos). As such, Watchman was replaced with chokidar. We are hoping to provide Watchman as a backend in the future. Therefore, we made Turbowatch expressions syntax compatible with a subset of Watchman expressions.
 
 ## Recipes
 
@@ -505,18 +464,6 @@ ROARR_LOG=true turbowatch | roarr
 ## Alternatives
 
 The biggest benefit of using Turbowatch is that it provides a single abstraction for all file watching operations. That is, you might get away with Nodemon, concurrently, `--watch`, etc. running in parallel, but using Turbowatch will introduce consistency to how you perform watch operations.
-
-### Why not use Watchman?
-
-Turbowatch is based on [Watchman](https://facebook.github.io/watchman/), and while Watchman is great at watching files, Turbowatch adds a layer of abstraction for orchestrating task execution in response to file changes (shell interface, graceful shutdown, output grouping, etc).
-
-### Why not use Nodemon?
-
-[Nodemon](https://nodemon.io/) is a popular software to monitor files for changes. However, Turbowatch is more performant and more flexible.
-
-Turbowatch is based on [Watchman](https://facebook.github.io/watchman/), which has been built to monitor tens of thousands of files with little overhead.
-
-In terms of the API, Turbowatch leverages powerful Watchman [expression language](#expressions-cheat-sheet) and [zx](https://github.com/google/zx) `child_process` abstractions to give you granular control over event handling and script execution.
 
 ### Why not use X --watch?
 

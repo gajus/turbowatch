@@ -8,8 +8,9 @@
     "turbowatch": "./dist/bin/turbowatch.js"
   },
   "dependencies": {
-    "fb-watchman": "^2.0.2",
+    "chokidar": "^3.5.3",
     "jiti": "^1.17.2",
+    "micromatch": "^4.0.5",
     "p-retry": "^4.6.2",
     "roarr": "^7.14.3",
     "serialize-error": "^11.0.0",
@@ -21,7 +22,6 @@
     "@semantic-release/commit-analyzer": "^9.0.2",
     "@semantic-release/github": "^8.0.7",
     "@semantic-release/npm": "^9.0.2",
-    "@types/fb-watchman": "^2.0.1",
     "@types/node": "^18.14.1",
     "@types/sinon": "^10.0.13",
     "@types/yargs": "^17.0.22",

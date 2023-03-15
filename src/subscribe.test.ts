@@ -1,23 +1,8 @@
 import { subscribe } from './subscribe';
 import { type Trigger } from './types';
-import { EventEmitter } from 'events';
 import { setTimeout } from 'node:timers';
 import * as sinon from 'sinon';
 import { expect, it } from 'vitest';
-
-class Client extends EventEmitter {
-  public cancelCommands() {}
-
-  public capabilityCheck() {}
-
-  public command() {}
-
-  public connect() {}
-
-  public end() {}
-
-  public sendNextCommand() {}
-}
 
 const defaultTrigger = {
   expression: ['match', 'foo', 'basename'],
@@ -42,30 +27,9 @@ const wait = (time: number) => {
   });
 };
 
-it('rejects promise if Watchman "subscribe" command produces an error', async () => {
-  const client = new Client();
-  const trigger = {
-    ...defaultTrigger,
-  } as Trigger;
-
-  const clientMock = sinon.mock(client);
-
-  clientMock
-    .expects('command')
-    .once()
-    .callsFake((args, callback) => {
-      callback(new Error('foo'));
-    });
-
-  await expect(subscribe(client, trigger)).rejects.toThrowError('foo');
-
-  expect(clientMock.verify());
-});
-
 it('evaluates onChange', async () => {
   const abortController = new AbortController();
 
-  const client = new Client();
   const trigger = {
     ...defaultTrigger,
     abortSignal: abortController.signal,
@@ -82,129 +46,18 @@ it('evaluates onChange', async () => {
       return Promise.resolve(null);
     });
 
-  const clientMock = sinon.mock(client);
+  const subscription = subscribe(trigger);
 
-  clientMock
-    .expects('on')
-    .once()
-    .callsFake((event, callback) => {
-      setImmediate(() => {
-        callback({
-          files: [],
-          subscription: 'foo',
-        });
-      });
-    });
+  subscription.trigger([]);
 
-  await subscribe(client, trigger);
-
-  expect(clientMock.verify());
   expect(subscriptionMock.verify());
 
   expect(onChange.args[0][0].taskId).toMatch(/^[a-z\d]{8}$/u);
 });
 
-it('evaluates multiple onChange', async () => {
-  const abortController = new AbortController();
-
-  const client = new Client();
-  const trigger = {
-    ...defaultTrigger,
-    abortSignal: abortController.signal,
-  } as Trigger;
-
-  const subscriptionMock = sinon.mock(trigger);
-
-  const onChange = subscriptionMock.expects('onChange').thrice();
-
-  onChange.onFirstCall().resolves(null);
-
-  onChange.onSecondCall().resolves(null);
-
-  onChange.onThirdCall().callsFake(() => {
-    abortController.abort();
-
-    return Promise.resolve(null);
-  });
-
-  const clientMock = sinon.mock(client);
-
-  clientMock.expects('on').callsFake((event, callback) => {
-    callback({
-      files: [],
-      subscription: 'foo',
-    });
-    setTimeout(() => {
-      callback({
-        files: [],
-        subscription: 'foo',
-      });
-      setTimeout(() => {
-        callback({
-          files: [],
-          subscription: 'foo',
-        });
-      });
-    });
-  });
-
-  await subscribe(client, trigger);
-
-  expect(onChange.callCount).toBe(3);
-});
-
-it('debounces onChange', async () => {
-  const abortController = new AbortController();
-
-  const client = new Client();
-  const trigger = {
-    ...defaultTrigger,
-    abortSignal: abortController.signal,
-    debounce: {
-      wait: 100,
-    },
-  } as Trigger;
-
-  const subscriptionMock = sinon.mock(trigger);
-
-  const onChange = subscriptionMock.expects('onChange').thrice();
-
-  setTimeout(() => {
-    abortController.abort();
-  }, 200);
-
-  onChange.onFirstCall().resolves(null);
-
-  const clientMock = sinon.mock(client);
-
-  clientMock.expects('on').callsFake((event, callback) => {
-    callback({
-      files: [],
-      subscription: 'foo',
-    });
-    setTimeout(() => {
-      callback({
-        files: [],
-        subscription: 'foo',
-      });
-      setTimeout(() => {
-        callback({
-          files: [],
-          subscription: 'foo',
-        });
-      });
-    });
-  });
-
-  await subscribe(client, trigger);
-
-  expect(onChange.callCount).toBe(1);
-});
-
 it('waits for onChange to complete when { interruptible: false }', async () => {
   const abortController = new AbortController();
 
-  const client = new Client();
   const trigger = {
     ...defaultTrigger,
     abortSignal: abortController.signal,
@@ -229,20 +82,10 @@ it('waits for onChange to complete when { interruptible: false }', async () => {
     abortController.abort();
   });
 
-  const clientMock = sinon.mock(client);
+  const subscription = subscribe(trigger);
 
-  clientMock.expects('on').callsFake((event, callback) => {
-    callback({
-      files: [],
-      subscription: 'foo',
-    });
-    callback({
-      files: [],
-      subscription: 'foo',
-    });
-  });
-
-  await subscribe(client, trigger);
+  await subscription.trigger([]);
+  await subscription.trigger([]);
 
   expect(onChange.callCount).toBe(2);
 });
@@ -250,7 +93,6 @@ it('waits for onChange to complete when { interruptible: false }', async () => {
 it('throws if onChange produces an error', async () => {
   const abortController = new AbortController();
 
-  const client = new Client();
   const trigger = {
     ...defaultTrigger,
     abortSignal: abortController.signal,
@@ -260,16 +102,9 @@ it('throws if onChange produces an error', async () => {
 
   subscriptionMock.expects('onChange').rejects(new Error('foo'));
 
-  const clientMock = sinon.mock(client);
+  const subscription = subscribe(trigger);
 
-  clientMock.expects('on').callsFake((event, callback) => {
-    callback({
-      files: [],
-      subscription: 'foo',
-    });
-  });
-
-  await expect(subscribe(client, trigger)).rejects.toThrowError('foo');
+  await expect(subscription.trigger([])).rejects.toThrowError('foo');
 
   await abortController.abort();
 });
@@ -277,7 +112,6 @@ it('throws if onChange produces an error', async () => {
 it('retries failing routines', async () => {
   const abortController = new AbortController();
 
-  const client = new Client();
   const trigger = {
     ...defaultTrigger,
     abortSignal: abortController.signal,
@@ -297,22 +131,16 @@ it('retries failing routines', async () => {
     return Promise.resolve(null);
   });
 
-  const clientMock = sinon.mock(client);
+  const subscription = await subscribe(trigger);
 
-  clientMock.expects('on').callsFake((event, callback) => {
-    callback({
-      files: [],
-      subscription: 'foo',
-    });
-  });
+  await subscription.trigger([]);
 
-  await subscribe(client, trigger);
+  expect(onChange.verify());
 });
 
 it('reports { first: true } only for the first event', async () => {
   const abortController = new AbortController();
 
-  const client = new Client();
   const trigger = {
     ...defaultTrigger,
     abortSignal: abortController.signal,
@@ -330,20 +158,10 @@ it('reports { first: true } only for the first event', async () => {
     return Promise.resolve(null);
   });
 
-  const clientMock = sinon.mock(client);
+  const subscription = subscribe(trigger);
 
-  clientMock.expects('on').callsFake((event, callback) => {
-    callback({
-      files: [],
-      subscription: 'foo',
-    });
-    callback({
-      files: [],
-      subscription: 'foo',
-    });
-  });
-
-  await subscribe(client, trigger);
+  await subscription.trigger([]);
+  await subscription.trigger([]);
 
   expect(onChange.args).toMatchObject([
     [
@@ -364,7 +182,6 @@ it('reports { first: true } only for the first event', async () => {
 it('waits for onChange to complete before resolving when it receives a shutdown signal', async () => {
   const abortController = new AbortController();
 
-  const client = new Client();
   const trigger = {
     ...defaultTrigger,
     abortSignal: abortController.signal,
@@ -387,82 +204,14 @@ it('waits for onChange to complete before resolving when it receives a shutdown 
       });
     });
 
-  const clientMock = sinon.mock(client);
-
-  clientMock
-    .expects('on')
-    .once()
-    .callsFake((event, callback) => {
-      callback({
-        files: [],
-        subscription: 'foo',
-      });
-    });
+  const subscription = subscribe(trigger);
 
   setImmediate(() => {
     abortController.abort();
   });
 
-  await subscribe(client, trigger);
+  await subscription.trigger([]);
 
-  expect(clientMock.verify());
-  expect(subscriptionMock.verify());
-
-  expect(resolved).toBe(true);
-});
-
-it('waits for onTeardown to complete before resolving when it receives a shutdown signal', async () => {
-  const abortController = new AbortController();
-
-  const client = new Client();
-  const trigger = {
-    ...defaultTrigger,
-    abortSignal: abortController.signal,
-  } as Trigger;
-
-  let resolved = false;
-
-  const subscriptionMock = sinon.mock(trigger);
-
-  subscriptionMock
-    .expects('onChange')
-    .once()
-    .callsFake(() => {
-      return null;
-    });
-
-  subscriptionMock
-    .expects('onTeardown')
-    .once()
-    .callsFake(() => {
-      return new Promise((resolve) => {
-        setTimeout(() => {
-          resolved = true;
-
-          resolve(null);
-        }, 100);
-      });
-    });
-
-  const clientMock = sinon.mock(client);
-
-  clientMock
-    .expects('on')
-    .once()
-    .callsFake((event, callback) => {
-      callback({
-        files: [],
-        subscription: 'foo',
-      });
-    });
-
-  setImmediate(() => {
-    abortController.abort();
-  });
-
-  await subscribe(client, trigger);
-
-  expect(clientMock.verify());
   expect(subscriptionMock.verify());
 
   expect(resolved).toBe(true);

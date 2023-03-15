@@ -14,10 +14,12 @@ language: en
 version: '0.2'
 words:
   - gajus
+  - idirname
+  - imatch
   - jiti
   - SIGINT
   - SIGTERM
   - turborepo
   - turbowatch
   - vitest
-  - watchmanconfig
+  - wholename
