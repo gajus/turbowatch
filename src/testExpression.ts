@@ -62,7 +62,9 @@ export const testExpression = (expression: Expression, fileName: string) => {
     const subject =
       expression[2] === 'basename' ? path.basename(fileName) : fileName;
 
-    return micromatch.isMatch(subject, pattern);
+    return micromatch.isMatch(subject, pattern, {
+      dot: true,
+    });
   }
 
   if (name === 'imatch') {
@@ -70,7 +72,9 @@ export const testExpression = (expression: Expression, fileName: string) => {
     const subject =
       expression[2] === 'basename' ? path.basename(fileName) : fileName;
 
-    return micromatch.isMatch(subject.toLowerCase(), pattern.toLowerCase());
+    return micromatch.isMatch(subject.toLowerCase(), pattern.toLowerCase(), {
+      dot: true,
+    });
   }
 
   if (name === 'not') {
