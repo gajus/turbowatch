@@ -14,6 +14,8 @@ language: en
 version: '0.2'
 words:
   - gajus
+  - idirname
+  - imatch
   - jiti
   - SIGINT
   - SIGTERM
@@ -21,3 +23,4 @@ words:
   - turbowatch
   - vitest
   - watchmanconfig
+  - wholename
