@@ -7,6 +7,7 @@ import { expect, it } from 'vitest';
 const defaultTrigger = {
   expression: ['match', 'foo', 'basename'],
   id: 'foo',
+  initialRun: true,
   interruptible: false,
   name: 'foo',
   onChange: async () => {},

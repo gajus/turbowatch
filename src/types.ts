@@ -95,12 +95,14 @@ export type Throttle = {
 /**
  * @property expression watchman expression, e.g. https://facebook.github.io/watchman/docs/expr/allof.html
  * @property interruptible Sends abort signal to an ongoing routine, if any. Otherwise, waits for routine to finish. (default: true)
+ * @property initialRun Indicates whether onChange is run when the script is first initiated.
  * @property name Name of the trigger. Used for debugging. Must match /^[a-z0-9-_]+$/ pattern and must be unique.
  * @property onChange Routine that is executed when file changes are detected.
  * @property persistent Label a task as persistent if it is a long-running process, such as a dev server or --watch mode.
  */
 type TriggerInput = {
   expression: Expression;
+  initialRun?: boolean;
   interruptible?: boolean;
   name: string;
   onChange: OnChangeEventHandler;
@@ -114,6 +116,7 @@ export type Trigger = {
   abortSignal?: AbortSignal;
   expression: Expression;
   id: string;
+  initialRun: boolean;
   interruptible: boolean;
   name: string;
   onChange: OnChangeEventHandler;
@@ -160,6 +163,7 @@ export type ActiveTask = {
 export type Subscription = {
   activeTask: ActiveTask | null;
   expression: Expression;
+  initialRun: boolean;
   teardown: () => Promise<void>;
   trigger: (events: readonly ChokidarEvent[]) => Promise<void>;
 };

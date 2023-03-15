@@ -93,6 +93,9 @@ void watch({
         ['match', '*.ts', 'basename'],
         ['match', '*.tsx', 'basename'],
       ],
+      // Indicates whether the onChange routine should be triggered on script startup.
+      // Defaults to false. Set it to false if you would like onChange routine to not run until the first changes are detected.
+      initialRun: true,
       // Determines what to do if a new file change is detected while the trigger is executing.
       // If {interruptible: true}, then AbortSignal will abort the current onChange routine.
       // If {interruptible: false}, then Turbowatch will wait until the onChange routine completes.

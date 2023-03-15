@@ -29,7 +29,7 @@ export const watch = (configurationInput: ConfigurationInput) => {
   let abortSignal = userAbortSignal;
 
   if (!abortSignal) {
-    log.warn('binding graceful shutdown to SIGINT');
+    log.debug('binding graceful shutdown to SIGINT');
 
     const abortController = new AbortController();
 
@@ -89,6 +89,7 @@ export const watch = (configurationInput: ConfigurationInput) => {
           abortSignal,
           expression: trigger.expression,
           id: generateShortId(),
+          initialRun: trigger.initialRun ?? true,
           interruptible: trigger.interruptible ?? true,
           name: trigger.name,
           onChange: trigger.onChange,
@@ -135,5 +136,11 @@ export const watch = (configurationInput: ConfigurationInput) => {
         evaluateSubscribers();
       });
     });
+
+    for (const subscription of subscriptions) {
+      if (subscription.initialRun) {
+        subscription.trigger([]);
+      }
+    }
   });
 };

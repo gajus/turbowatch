@@ -26,7 +26,9 @@ export const subscribe = (trigger: Trigger): Subscription => {
       return undefined;
     }
 
-    if (event.files.length > 10) {
+    if (trigger.initialRun && first) {
+      log.trace('initial run...');
+    } else if (event.files.length > 10) {
       log.trace(
         {
           files: event.files.slice(0, 10).map((file) => {
@@ -157,6 +159,7 @@ export const subscribe = (trigger: Trigger): Subscription => {
   return {
     activeTask,
     expression: trigger.expression,
+    initialRun: trigger.initialRun,
     teardown: async () => {
       if (trigger.onTeardown) {
         const taskId = generateShortId();
