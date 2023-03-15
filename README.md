@@ -215,6 +215,7 @@ type Expression =
   | ['anyof', ...Expression[]]
   // Evaluates as true if a given file has a matching parent directory.
   // https://facebook.github.io/watchman/docs/expr/dirname.html
+  | ['dirname' | 'idirname', string]
   | ['dirname' | 'idirname', string, ['depth', RelationalOperator, number]]
   // Evaluates as true if the file exists, has size 0 and is a regular file or directory.
   // https://facebook.github.io/watchman/docs/expr/empty.html
