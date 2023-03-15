@@ -206,7 +206,7 @@ type Expression =
   | ['not', Expression];
 ```
 
-> **Note** Turbowatch expressions are a subset of [Watchman expressions](https://facebook.github.io/watchman/docs/expr/allof.html). Originally, Turbowatch was developed to leverage Watchman as a superior backend for watching a large number of files. However, along the way we discovered that Watchman does not support symbolic links (issue [#105](https://github.com/facebook/watchman/issues/105#issuecomment-1469496330)). Unfortunately, that made Watchman unsuitable for projects with linked dependencies (which is the direction in which the ecosystem is moving for dependency management in monorepos). As such, Watchman was replaced with chokidar. We are hoping to provide Watchman as a backend in the future. Therefore, we made Turbowatch expressions syntax compatible with a subset of Watchman expressions.
+> **Note** Turbowatch expressions are a subset of [Watchman expressions](https://facebook.github.io/watchman/docs/expr/allof.html). Originally, Turbowatch was developed to leverage Watchman as a superior backend for watching a large number of files. However, along the way, we discovered that Watchman does not support symbolic links (issue [#105](https://github.com/facebook/watchman/issues/105#issuecomment-1469496330)). Unfortunately, that makes Watchman unsuitable for projects that utilize linked dependencies (which is the direction in which the ecosystem is moving for dependency management in monorepos). As such, Watchman was replaced with chokidar. We are hoping to provide Watchman as a backend in the future. Therefore, we made Turbowatch expressions syntax compatible with a subset of Watchman expressions.
 
 ## Recipes
 

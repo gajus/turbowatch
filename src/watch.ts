@@ -1,6 +1,7 @@
 import { generateShortId } from './generateShortId';
 import { Logger } from './Logger';
 import { subscribe } from './subscribe';
+import { testExpression } from './testExpression';
 import {
   type ChokidarEvent,
   type Configuration,
@@ -112,7 +113,13 @@ export const watch = (configurationInput: ConfigurationInput) => {
       queuedChokidarEvents = [];
 
       for (const subscription of subscriptions) {
-        subscription.trigger(currentChokidarEvents);
+        const relevantEvents = currentChokidarEvents.filter((chokidarEvent) => {
+          return testExpression(subscription.expression, chokidarEvent.path);
+        });
+
+        if (relevantEvents.length) {
+          subscription.trigger(relevantEvents);
+        }
       }
     });
 
