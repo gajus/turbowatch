@@ -18,6 +18,8 @@ jobs:
       - run: npm run lint:tsc
       - run: npm run lint:cspell
       - run: npm run test:vitest
+        env:
+          ROARR_LOG: 'true'
       - run: npm run build
       - run: npx semantic-release
         env:

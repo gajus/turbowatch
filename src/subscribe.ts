@@ -82,6 +82,7 @@ export const subscribe = (trigger: Trigger): Subscription => {
       }
     }
 
+    // TODO remove duplicates
     const event = {
       files: eventQueue.map(({ path }) => {
         return {
