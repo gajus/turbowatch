@@ -2,6 +2,7 @@
   "compilerOptions": {
     "allowSyntheticDefaultImports": true,
     "declaration": false,
+    "sourceMap": true,
     "esModuleInterop": true,
     "lib": [
       "es2021"
