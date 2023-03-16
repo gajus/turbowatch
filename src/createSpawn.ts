@@ -29,20 +29,26 @@ export const createSpawn = (
   let stdoutBuffer: string[] = [];
   let stderrBuffer: string[] = [];
 
-  const output = throttle(throttleOutput?.delay, () => {
-    if (stdoutBuffer.length) {
-      // eslint-disable-next-line no-console
-      console.log(stdoutBuffer.join('\n'));
-    }
+  const output = throttle(
+    throttleOutput?.delay,
+    () => {
+      if (stdoutBuffer.length) {
+        // eslint-disable-next-line no-console
+        console.log(stdoutBuffer.join('\n'));
+      }
 
-    if (stderrBuffer.length) {
-      // eslint-disable-next-line no-console
-      console.log(stderrBuffer.join('\n'));
-    }
+      if (stderrBuffer.length) {
+        // eslint-disable-next-line no-console
+        console.log(stderrBuffer.join('\n'));
+      }
 
-    stdoutBuffer = [];
-    stderrBuffer = [];
-  });
+      stdoutBuffer = [];
+      stderrBuffer = [];
+    },
+    {
+      noLeading: true,
+    },
+  );
 
   return async (pieces: TemplateStringsArray, ...args: any[]) => {
     // eslint-disable-next-line promise/prefer-await-to-then
