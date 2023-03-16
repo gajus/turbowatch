@@ -4,7 +4,6 @@ specifiers:
   '@semantic-release/commit-analyzer': ^9.0.2
   '@semantic-release/github': ^8.0.7
   '@semantic-release/npm': ^9.0.2
-  '@types/fb-watchman': ^2.0.1
   '@types/node': ^18.14.1
   '@types/sinon': ^10.0.13
   '@types/yargs': ^17.0.22
@@ -13,6 +12,7 @@ specifiers:
   eslint: ^8.34.0
   eslint-config-canonical: ^40.0.7
   jiti: ^1.17.2
+  micromatch: ^4.0.5
   p-retry: ^4.6.2
   roarr: ^7.14.3
   semantic-release: ^20.1.0
@@ -27,6 +27,7 @@ specifiers:
 dependencies:
   chokidar: 3.5.3
   jiti: 1.17.2
+  micromatch: 4.0.5
   p-retry: 4.6.2
   roarr: 7.14.3
   serialize-error: 11.0.0
@@ -38,7 +39,6 @@ devDependencies:
   '@semantic-release/commit-analyzer': 9.0.2_semantic-release@20.1.1
   '@semantic-release/github': 8.0.7_semantic-release@20.1.1
   '@semantic-release/npm': 9.0.2_semantic-release@20.1.1
-  '@types/fb-watchman': 2.0.1
   '@types/node': 18.14.2
   '@types/sinon': 10.0.13
   '@types/yargs': 17.0.22
@@ -1485,10 +1485,6 @@ packages:
 
   /@types/chai/4.3.4:
     resolution: {integrity: sha512-KnRanxnpfpjUTqTCXslZSEdLfXExwgNxYPdiO2WGUj8+HDjFi8R3k5RVKPeSCzLjCcshCAtVO2QBbVuAV4kTnw==}
-    dev: true
-
-  /@types/fb-watchman/2.0.1:
-    resolution: {integrity: sha512-iJ7/e6drSmuCzAp96/dpksm8YjxbhhyXWV6m1HPbRHvZwUOUZ5vZvZIAUJxKDtI0UpdNfDvLPiai0MTJmmS+HA==}
     dev: true
 
   /@types/fs-extra/11.0.1:
