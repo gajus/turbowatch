@@ -37,7 +37,7 @@ export const createSpawn = (
 
     if (stderrBuffer.length) {
       // eslint-disable-next-line no-console
-      console.log(stderrBuffer.join('\n'));
+      console.error(stderrBuffer.join('\n'));
     }
 
     stdoutBuffer = [];
