@@ -29,21 +29,25 @@ export const createSpawn = (
   let stdoutBuffer: string[] = [];
   let stderrBuffer: string[] = [];
 
+  const flush = () => {
+    if (stdoutBuffer.length) {
+      // eslint-disable-next-line no-console
+      console.log(stdoutBuffer.join('\n'));
+    }
+
+    if (stderrBuffer.length) {
+      // eslint-disable-next-line no-console
+      console.log(stderrBuffer.join('\n'));
+    }
+
+    stdoutBuffer = [];
+    stderrBuffer = [];
+  };
+
   const output = throttle(
     throttleOutput?.delay,
     () => {
-      if (stdoutBuffer.length) {
-        // eslint-disable-next-line no-console
-        console.log(stdoutBuffer.join('\n'));
-      }
-
-      if (stderrBuffer.length) {
-        // eslint-disable-next-line no-console
-        console.log(stderrBuffer.join('\n'));
-      }
-
-      stdoutBuffer = [];
-      stderrBuffer = [];
+      flush();
     },
     {
       noLeading: true,
@@ -102,6 +106,8 @@ export const createSpawn = (
     }
 
     const result = await processPromise;
+
+    flush();
 
     if (result.exitCode === 0) {
       return result;
