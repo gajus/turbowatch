@@ -5,7 +5,6 @@ import {
   type ActiveTask,
   type ChokidarEvent,
   type Subscription,
-  type SubscriptionEvent,
   type Trigger,
 } from './types';
 import retry from 'p-retry';
@@ -19,35 +18,13 @@ export const subscribe = (trigger: Trigger): Subscription => {
 
   let first = true;
 
-  const handleSubscriptionEvent = async (event: SubscriptionEvent) => {
+  let eventQueue: ChokidarEvent[] = [];
+
+  const handleSubscriptionEvent = async () => {
     if (trigger.abortSignal?.aborted) {
       log.warn('ignoring event because Turbowatch is shutting down');
 
       return undefined;
-    }
-
-    if (trigger.initialRun && first) {
-      log.trace('initial run...');
-    } else if (event.files.length > 10) {
-      log.trace(
-        {
-          files: event.files.slice(0, 10).map((file) => {
-            return file.name;
-          }),
-        },
-        '%d files changed; showing first 10',
-        event.files.length,
-      );
-    } else {
-      log.trace(
-        {
-          files: event.files.map((file) => {
-            return file.name;
-          }),
-        },
-        '%d files changed',
-        event.files.length,
-      );
     }
 
     let reportFirst = first;
@@ -103,6 +80,40 @@ export const subscribe = (trigger: Trigger): Subscription => {
           // nothing to do
         }
       }
+    }
+
+    const event = {
+      files: eventQueue.map(({ path }) => {
+        return {
+          name: path,
+        };
+      }),
+    };
+
+    eventQueue = [];
+
+    if (trigger.initialRun && first) {
+      log.trace('initial run...');
+    } else if (event.files.length > 10) {
+      log.trace(
+        {
+          files: event.files.slice(0, 10).map((file) => {
+            return file.name;
+          }),
+        },
+        '%d files changed; showing first 10',
+        event.files.length,
+      );
+    } else {
+      log.trace(
+        {
+          files: event.files.map((file) => {
+            return file.name;
+          }),
+        },
+        '%d files changed',
+        event.files.length,
+      );
     }
 
     const taskId = generateShortId();
@@ -172,13 +183,9 @@ export const subscribe = (trigger: Trigger): Subscription => {
       }
     },
     trigger: async (events: readonly ChokidarEvent[]) => {
-      await handleSubscriptionEvent({
-        files: events.map((event) => {
-          return {
-            name: event.path,
-          };
-        }),
-      });
+      eventQueue.push(...events);
+
+      await handleSubscriptionEvent();
     },
   };
 };

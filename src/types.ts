@@ -148,10 +148,6 @@ export type ChokidarEvent = {
   path: string;
 };
 
-export type SubscriptionEvent = {
-  files: Array<{ name: string }>;
-};
-
 /**
  * @property queued Indicates that a follow action has been queued.
  */
