@@ -22,6 +22,7 @@ export const watch = (configurationInput: ConfigurationInput) => {
     project,
     triggers,
     abortSignal: userAbortSignal,
+    onReady,
   }: Configuration = {
     ...configurationInput,
   };
@@ -135,6 +136,10 @@ export const watch = (configurationInput: ConfigurationInput) => {
 
         evaluateSubscribers();
       });
+
+      if (onReady) {
+        onReady();
+      }
     });
 
     for (const subscription of subscriptions) {
