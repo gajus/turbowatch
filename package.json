@@ -37,6 +37,7 @@
     "node": ">=16.0"
   },
   "files": [
+    "./src",
     "./dist"
   ],
   "keywords": [
@@ -58,6 +59,6 @@
     "lint:tsc": "tsc --noEmit",
     "test:vitest": "vitest --passWithNoTests"
   },
-  "types": "./dist/index.d.ts",
+  "types": "./src/index.ts",
   "version": "1.0.0"
 }
