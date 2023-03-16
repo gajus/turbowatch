@@ -2,7 +2,6 @@
   "compilerOptions": {
     "allowSyntheticDefaultImports": true,
     "declaration": false,
-    "sourceMap": true,
     "esModuleInterop": true,
     "lib": [
       "es2021"
@@ -13,6 +12,7 @@
     "noImplicitReturns": true,
     "outDir": "dist",
     "skipLibCheck": true,
+    "sourceMap": true,
     "strict": true,
     "target": "es2018",
     "useUnknownInCatchVariables": false
