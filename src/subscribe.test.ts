@@ -91,6 +91,44 @@ it('waits for onChange to complete when { interruptible: false }', async () => {
   expect(onChange.callCount).toBe(2);
 });
 
+it('waits for onChange to complete when { interruptible: true } when it receives a shutdown signal', async () => {
+  const abortController = new AbortController();
+
+  const trigger = {
+    ...defaultTrigger,
+    abortSignal: abortController.signal,
+  } as Trigger;
+
+  let resolved = false;
+
+  const subscriptionMock = sinon.mock(trigger);
+
+  subscriptionMock
+    .expects('onChange')
+    .once()
+    .callsFake(() => {
+      return new Promise((resolve) => {
+        setTimeout(() => {
+          resolved = true;
+
+          resolve(null);
+        }, 100);
+      });
+    });
+
+  const subscription = subscribe(trigger);
+
+  setImmediate(() => {
+    abortController.abort();
+  });
+
+  await subscription.trigger([]);
+
+  expect(subscriptionMock.verify());
+
+  expect(resolved).toBe(true);
+});
+
 it('throws if onChange produces an error', async () => {
   const abortController = new AbortController();
 
@@ -178,42 +216,4 @@ it('reports { first: true } only for the first event', async () => {
   ]);
 
   expect(subscriptionMock.verify());
-});
-
-it('waits for onChange to complete before resolving when it receives a shutdown signal', async () => {
-  const abortController = new AbortController();
-
-  const trigger = {
-    ...defaultTrigger,
-    abortSignal: abortController.signal,
-  } as Trigger;
-
-  let resolved = false;
-
-  const subscriptionMock = sinon.mock(trigger);
-
-  subscriptionMock
-    .expects('onChange')
-    .once()
-    .callsFake(() => {
-      return new Promise((resolve) => {
-        setTimeout(() => {
-          resolved = true;
-
-          resolve(null);
-        }, 100);
-      });
-    });
-
-  const subscription = subscribe(trigger);
-
-  setImmediate(() => {
-    abortController.abort();
-  });
-
-  await subscription.trigger([]);
-
-  expect(subscriptionMock.verify());
-
-  expect(resolved).toBe(true);
 });
