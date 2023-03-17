@@ -137,8 +137,8 @@ export type ConfigurationInput = {
 
 export type Configuration = {
   readonly abortSignal?: AbortSignal;
-  readonly onReady?: () => void;
   readonly debounce: Debounce;
+  readonly onReady?: () => void;
   readonly project: string;
   readonly triggers: readonly TriggerInput[];
 };

@@ -26,7 +26,7 @@ export const watch = (configurationInput: ConfigurationInput) => {
     onReady,
   }: Configuration = {
     debounce: {
-      wait: 1000,
+      wait: 1_000,
     },
     ...configurationInput,
   };
@@ -112,24 +112,33 @@ export const watch = (configurationInput: ConfigurationInput) => {
 
     let queuedChokidarEvents: ChokidarEvent[] = [];
 
-    const evaluateSubscribers = debounce(userDebounce.wait, () => {
-      const currentChokidarEvents =
-        queuedChokidarEvents as readonly ChokidarEvent[];
+    const evaluateSubscribers = debounce(
+      userDebounce.wait,
+      () => {
+        const currentChokidarEvents =
+          queuedChokidarEvents as readonly ChokidarEvent[];
 
-      queuedChokidarEvents = [];
+        queuedChokidarEvents = [];
 
-      for (const subscription of subscriptions) {
-        const relevantEvents = currentChokidarEvents.filter((chokidarEvent) => {
-          return testExpression(subscription.expression, chokidarEvent.path);
-        });
+        for (const subscription of subscriptions) {
+          const relevantEvents = currentChokidarEvents.filter(
+            (chokidarEvent) => {
+              return testExpression(
+                subscription.expression,
+                chokidarEvent.path,
+              );
+            },
+          );
 
-        if (relevantEvents.length) {
-          subscription.trigger(relevantEvents);
+          if (relevantEvents.length) {
+            subscription.trigger(relevantEvents);
+          }
         }
-      }
-    }, {
-      noLeading: true,
-    });
+      },
+      {
+        noLeading: true,
+      },
+    );
 
     watcher.on('ready', () => {
       log.info('Initial scan complete. Ready for changes');
