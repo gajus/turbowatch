@@ -73,13 +73,12 @@ void watch({
   // If none is provided, then Turbowatch will gracefully terminate
   // the service when it receives SIGINT.
   abortSignal: new AbortController().signal,
-  // Debounces triggers by 100 milliseconds.
+  // Debounces triggers by 1 second.
   // Most multi-file spanning changes are non-atomic. Therefore, it is typically desirable to
   // batch together information about multiple file changes that happened in short succession.
   // Provide { debounce: { wait: 0 } } to disable debounce.
   debounce: {
-    leading: false,
-    wait: 100,
+    wait: 1000,
   },
   // The base directory under which all files are matched.
   // Note: This is different from the "root project" (https://github.com/gajus/turbowatch#project-root).

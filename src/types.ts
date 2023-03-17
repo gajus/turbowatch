@@ -84,7 +84,6 @@ type Retry = {
 };
 
 type Debounce = {
-  leading?: boolean;
   wait: number;
 };
 
@@ -139,6 +138,7 @@ export type ConfigurationInput = {
 export type Configuration = {
   readonly abortSignal?: AbortSignal;
   readonly onReady?: () => void;
+  readonly debounce: Debounce;
   readonly project: string;
   readonly triggers: readonly TriggerInput[];
 };

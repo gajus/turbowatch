@@ -22,8 +22,12 @@ export const watch = (configurationInput: ConfigurationInput) => {
     project,
     triggers,
     abortSignal: userAbortSignal,
+    debounce: userDebounce,
     onReady,
   }: Configuration = {
+    debounce: {
+      wait: 1000,
+    },
     ...configurationInput,
   };
 
@@ -108,7 +112,7 @@ export const watch = (configurationInput: ConfigurationInput) => {
 
     let queuedChokidarEvents: ChokidarEvent[] = [];
 
-    const evaluateSubscribers = debounce(100, () => {
+    const evaluateSubscribers = debounce(userDebounce.wait, () => {
       const currentChokidarEvents =
         queuedChokidarEvents as readonly ChokidarEvent[];
 
@@ -123,6 +127,8 @@ export const watch = (configurationInput: ConfigurationInput) => {
           subscription.trigger(relevantEvents);
         }
       }
+    }, {
+      noLeading: true,
     });
 
     watcher.on('ready', () => {
