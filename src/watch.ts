@@ -25,6 +25,8 @@ export const watch = (configurationInput: ConfigurationInput) => {
     debounce: userDebounce,
     onReady,
   }: Configuration = {
+    // as far as I can tell, this is a bug in unicorn/no-unused-properties
+    // eslint-disable-next-line unicorn/no-unused-properties
     debounce: {
       wait: 1_000,
     },
