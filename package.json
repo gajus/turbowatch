@@ -59,6 +59,6 @@
     "lint:tsc": "tsc --noEmit",
     "test:vitest": "vitest --passWithNoTests"
   },
-  "types": "./src/index.ts",
+  "types": "./dist/index.d.ts",
   "version": "1.0.0"
 }
