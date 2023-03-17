@@ -13,6 +13,7 @@
     "outDir": "dist",
     "skipLibCheck": true,
     "sourceMap": true,
+    "sourceRoot": "../src",
     "strict": true,
     "target": "es2018",
     "useUnknownInCatchVariables": false
