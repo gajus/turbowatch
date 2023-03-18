@@ -50,11 +50,20 @@ export const watch = (configurationInput: ConfigurationInput) => {
   }
 
   return new Promise((resolve, reject) => {
+    let discoveredFileCount = 0;
+
+    const indexingIntervalId = setInterval(() => {
+      // TODO handle single file log
+      log.trace('indexed %d files...', discoveredFileCount);
+    }, 1_000);
+
     const subscriptions: Subscription[] = [];
 
     const watcher = chokidar.watch(project);
 
     const close = async () => {
+      clearInterval(indexingIntervalId);
+
       for (const subscription of subscriptions) {
         const { activeTask } = subscription;
 
@@ -144,13 +153,6 @@ export const watch = (configurationInput: ConfigurationInput) => {
 
     let ready = false;
 
-    let discoveredFileCount = 0;
-
-    const intervalId = setInterval(() => {
-      // TODO handle single file log
-      log.trace('indexed %d files...', discoveredFileCount);
-    }, 1_000);
-
     const discoveredFiles: string[] = [];
 
     watcher.on('all', (event, path) => {
@@ -173,7 +175,7 @@ export const watch = (configurationInput: ConfigurationInput) => {
     watcher.on('ready', () => {
       ready = true;
 
-      clearInterval(intervalId);
+      clearInterval(indexingIntervalId);
 
       if (discoveredFiles.length > 10) {
         log.trace(
