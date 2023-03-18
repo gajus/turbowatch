@@ -93,7 +93,7 @@ export const subscribe = (trigger: Trigger): Subscription => {
 
     eventQueue = [];
 
-    if (trigger.initialRun && first) {
+    if (trigger.initialRun && reportFirst) {
       log.trace('initial run...');
     } else if (event.files.length > 10) {
       log.trace(
