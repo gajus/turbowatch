@@ -123,8 +123,9 @@ export const subscribe = (trigger: Trigger): Subscription => {
             return file.name;
           }),
         },
-        '%d files changed',
+        '%d %s changed',
         event.files.length,
+        event.files.length === 1 ? 'file' : 'files',
       );
     }
 

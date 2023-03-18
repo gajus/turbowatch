@@ -53,8 +53,11 @@ export const watch = (configurationInput: ConfigurationInput) => {
     let discoveredFileCount = 0;
 
     const indexingIntervalId = setInterval(() => {
-      // TODO handle single file log
-      log.trace('indexed %d files...', discoveredFileCount);
+      log.trace(
+        'indexed %d %s...',
+        discoveredFileCount,
+        discoveredFileCount === 1 ? 'file' : 'files',
+      );
     }, 1_000);
 
     const subscriptions: Subscription[] = [];
@@ -195,8 +198,9 @@ export const watch = (configurationInput: ConfigurationInput) => {
               return file;
             }),
           },
-          'discovered %d files in %s',
+          'discovered %d %s in %s',
           discoveredFileCount,
+          discoveredFiles.length === 1 ? 'file' : 'files',
           project,
         );
       }
