@@ -142,17 +142,63 @@ export const watch = (configurationInput: ConfigurationInput) => {
       },
     );
 
-    watcher.on('ready', () => {
-      log.info('Initial scan complete. Ready for changes');
+    let ready = false;
 
-      watcher.on('all', (event, path) => {
+    let discoveredFileCount = 0;
+
+    const intervalId = setInterval(() => {
+      log.trace('indexed %d files...', discoveredFileCount);
+    }, 1_000);
+
+    const discoveredFiles: string[] = [];
+
+    watcher.on('all', (event, path) => {
+      if (ready) {
         queuedChokidarEvents.push({
           event,
           path,
         });
 
         evaluateSubscribers();
-      });
+      } else {
+        if (discoveredFiles.length < 10) {
+          discoveredFiles.push(path);
+        }
+
+        discoveredFileCount++;
+      }
+    });
+
+    watcher.on('ready', () => {
+      clearInterval(intervalId);
+
+      if (discoveredFiles.length > 10) {
+        log.trace(
+          {
+            files: discoveredFiles.slice(0, 10).map((file) => {
+              return file;
+            }),
+          },
+          'discovered %d files in %s; showing first 10',
+          discoveredFileCount,
+          project,
+        );
+      } else {
+        log.trace(
+          {
+            files: discoveredFiles.map((file) => {
+              return file;
+            }),
+          },
+          'discovered %d files in %s',
+          discoveredFileCount,
+          project,
+        );
+      }
+
+      log.info('Initial scan complete. Ready for changes');
+
+      ready = true;
 
       if (onReady) {
         onReady();
