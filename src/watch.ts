@@ -147,6 +147,7 @@ export const watch = (configurationInput: ConfigurationInput) => {
     let discoveredFileCount = 0;
 
     const intervalId = setInterval(() => {
+      // TODO handle single file log
       log.trace('indexed %d files...', discoveredFileCount);
     }, 1_000);
 
@@ -170,6 +171,8 @@ export const watch = (configurationInput: ConfigurationInput) => {
     });
 
     watcher.on('ready', () => {
+      ready = true;
+
       clearInterval(intervalId);
 
       if (discoveredFiles.length > 10) {
@@ -197,8 +200,6 @@ export const watch = (configurationInput: ConfigurationInput) => {
       }
 
       log.info('Initial scan complete. Ready for changes');
-
-      ready = true;
 
       if (onReady) {
         onReady();
