@@ -56,6 +56,50 @@ it('evaluates onChange', async () => {
   expect(onChange.args[0][0].taskId).toMatch(/^[a-z\d]{8}$/u);
 });
 
+it('removes duplicates', async () => {
+  const abortController = new AbortController();
+
+  const trigger = {
+    ...defaultTrigger,
+    abortSignal: abortController.signal,
+  } as Trigger;
+
+  const subscriptionMock = sinon.mock(trigger);
+
+  const onChange = subscriptionMock
+    .expects('onChange')
+    .once()
+    .callsFake(() => {
+      abortController.abort();
+
+      return Promise.resolve(null);
+    });
+
+  const subscription = subscribe(trigger);
+
+  subscription.trigger([
+    {
+      event: 'add',
+      path: '/foo',
+    },
+    {
+      event: 'add',
+      path: '/foo',
+    },
+    {
+      event: 'add',
+      path: '/bar',
+    },
+  ]);
+
+  expect(subscriptionMock.verify());
+
+  expect(onChange.args[0][0].files).toEqual([
+    { name: '/foo' },
+    { name: '/bar' },
+  ]);
+});
+
 it('waits for onChange to complete when { interruptible: false }', async () => {
   const abortController = new AbortController();
 

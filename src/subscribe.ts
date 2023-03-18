@@ -82,13 +82,24 @@ export const subscribe = (trigger: Trigger): Subscription => {
       }
     }
 
-    // TODO remove duplicates
+    // TODO differentiate between "add", "unlink" and "change" events
+    const affectedPaths: string[] = [];
+
     const event = {
-      files: eventQueue.map(({ path }) => {
-        return {
-          name: path,
-        };
-      }),
+      files: eventQueue
+        .filter(({ path }) => {
+          if (affectedPaths.includes(path)) {
+            return false;
+          }
+
+          affectedPaths.push(path);
+          return true;
+        })
+        .map(({ path }) => {
+          return {
+            name: path,
+          };
+        }),
     };
 
     eventQueue = [];
