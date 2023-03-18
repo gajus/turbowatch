@@ -115,6 +115,7 @@ void watch({
       // Label a task as persistent if it is a long-running process, such as a dev server or --watch mode.
       persistent: false,
       // Retry a task if it fails. Otherwise, watch program will throw an error if trigger fails.
+      // Defaults to { retries: 0 }
       retry: {
         retries: 5,
       },
@@ -268,7 +269,7 @@ Retries are configured by passing a `retry` property to the trigger configuratio
  * @property factor The exponential factor to use. Default is 2.
  * @property maxTimeout The maximum number of milliseconds between two retries. Default is Infinity.
  * @property minTimeout The number of milliseconds before starting the first retry. Default is 1000.
- * @property retries The maximum amount of times to retry the operation. Default is 10. Seting this to 1 means do it once, then retry it once.
+ * @property retries The maximum amount of times to retry the operation. Default is 0. Seting this to 1 means do it once, then retry it once.
  */
 type Retry = {
   factor?: number,
@@ -276,20 +277,6 @@ type Retry = {
   minTimeout?: number,
   retries?: number,
 }
-```
-
-The default configuration will retry a failing trigger up to 10 times. Retries can be disabled entirely by setting `{ retries: 0 }`, e.g.,
-
-```ts
-{
-  expression: ['match', '*.ts', 'basename'],
-  onChange: async ({ spawn }: ChangeEvent) => {
-    await spawn`tsc`;
-  },
-  retry: {
-    retries: 0,
-  },
-},
 ```
 
 ### Gracefully terminating Turbowatch

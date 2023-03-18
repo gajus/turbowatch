@@ -114,10 +114,7 @@ export const watch = (configurationInput: ConfigurationInput) => {
           onChange: trigger.onChange,
           onTeardown: trigger.onTeardown,
           retry: trigger.retry ?? {
-            factor: 2,
-            maxTimeout: Number.POSITIVE_INFINITY,
-            minTimeout: 1_000,
-            retries: 10,
+            retries: 0,
           },
           throttleOutput: trigger.throttleOutput ?? { delay: 1_000 },
         }),
