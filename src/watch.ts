@@ -117,7 +117,7 @@ export const watch = (
         });
 
         if (relevantEvents.length) {
-          subscription.trigger(relevantEvents);
+          void subscription.trigger(relevantEvents);
         }
       }
     },
@@ -197,7 +197,7 @@ export const watch = (
 
       for (const subscription of subscriptions) {
         if (subscription.initialRun) {
-          subscription.trigger([]);
+          void subscription.trigger([]);
         }
       }
 

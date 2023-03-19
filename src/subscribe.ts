@@ -165,6 +165,10 @@ export const subscribe = (trigger: Trigger): Subscription => {
 
           activeTask = null;
         }
+      })
+      // eslint-disable-next-line promise/prefer-await-to-then
+      .catch(() => {
+        log.warn('task %s (%s) failed', trigger.name, taskId);
       });
 
     // eslint-disable-next-line require-atomic-updates

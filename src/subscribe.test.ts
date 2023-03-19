@@ -56,6 +56,22 @@ it('evaluates onChange', async () => {
   expect(onChange.args[0][0].taskId).toMatch(/^[a-z\d]{8}$/u);
 });
 
+it('swallow onChange errors', async () => {
+  const trigger = {
+    ...defaultTrigger,
+  } as Trigger;
+
+  const subscriptionMock = sinon.mock(trigger);
+
+  subscriptionMock.expects('onChange').once().rejects(new Error('foo'));
+
+  const subscription = subscribe(trigger);
+
+  await subscription.trigger([]);
+
+  expect(subscriptionMock.verify());
+});
+
 it('removes duplicates', async () => {
   const abortController = new AbortController();
 
@@ -171,25 +187,6 @@ it('waits for onChange to complete when { interruptible: true } when it receives
   expect(subscriptionMock.verify());
 
   expect(resolved).toBe(true);
-});
-
-it('throws if onChange produces an error', async () => {
-  const abortController = new AbortController();
-
-  const trigger = {
-    ...defaultTrigger,
-    abortSignal: abortController.signal,
-  } as Trigger;
-
-  const subscriptionMock = sinon.mock(trigger);
-
-  subscriptionMock.expects('onChange').rejects(new Error('foo'));
-
-  const subscription = subscribe(trigger);
-
-  await expect(subscription.trigger([])).rejects.toThrowError('foo');
-
-  await abortController.abort();
 });
 
 it('retries failing routines', async () => {
