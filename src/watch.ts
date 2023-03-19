@@ -47,7 +47,7 @@ export const watch = (
       discoveredFileCount,
       discoveredFileCount === 1 ? 'file' : 'files',
     );
-  }, 1_000);
+  }, 5_000);
 
   const subscriptions: Subscription[] = [];
 
