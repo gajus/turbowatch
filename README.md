@@ -256,6 +256,65 @@ export default watch({
 });
 ```
 
+### Watching `node_modules`
+
+There is more than one way to watch `node_modules`. However, through trial and error we found that the following set of rules work the best for a generalized solution.
+
+```ts
+import { watch } from 'turbowatch';
+
+export default watch({
+  project: path.resolve(__dirname, '../..'),
+  triggers: [
+    {
+      expression: [
+        'anyof',
+        [
+          'allof',
+          ['dirname', 'node_modules'],
+          ['dirname', 'dist'],
+          ['match', '*', 'basename'],
+        ],
+        [
+          'allof',
+          ['not', ['dirname', 'node_modules']],
+          ['dirname', 'src'],
+          ['match', '*', 'basename'],
+        ],
+      ],
+      name: 'build',
+      onChange: async ({ spawn }) => {
+        return spawn`pnpm run build`;
+      },
+    },
+  ],
+});
+```
+
+This setup makes an assumption that your workspaces sources are in `src` directory and `build` task outputs to `dist` directory.
+
+### Reusing expressions
+
+This might be common sense, but since Turbowatch scripts are regular JavaScript scripts, you can (and should) abstract your expressions and routines.
+
+How you do it is entirely up to you, e.g. You could abstract just expressions or you could go as far as abstracting the entire `trigger`:
+
+```ts
+import { watch } from 'turbowatch';
+import {
+  buildTrigger,
+} from '@/turbowatch';
+
+export default watch({
+  project: __dirname,
+  triggers: [
+    buildTrigger(),
+  ],
+});
+```
+
+Such abstraction helps to avoid errors that otherwise may occur due to duplicative code across workspaces.
+
 ### Retrying failing triggers
 
 Retries are configured by passing a `retry` property to the trigger configuration.
@@ -514,6 +573,6 @@ Example:
 turbo run dev --parallel
 ```
 
-> **Note** We found that using `dependsOn` with Turbowatch produces undesirable effects. Instead, simply use Turbowatch rules to identify when dependencies update.
+> **Note** We found that using `dependsOn` with Turbowatch produces undesirable effects. Instead, simply use Turbowatch expressions to identify when dependencies update.
 
-> **Note** Turbowatch is not aware of the Turborepo dependency graph. Meaning, that your builds might fail at the first attempt. However, thanks to retries and debounce, it will start working after warming up. We are currently exploring how to reduce preventable failures. Please open an if you would like your ideas to be considered.
+> **Note** Turbowatch is not aware of the Turborepo dependency graph. Meaning, that your builds might fail at the first attempt. However, if you setup Turbowatch to [watch `node_modules`](#watching-node_modules), then Turbowatch will automatically retry failing builds as soon as the dependencies are built.
