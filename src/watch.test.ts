@@ -1,4 +1,5 @@
 import { watch } from './watch';
+import { setTimeout } from 'node:timers/promises';
 import path from 'path';
 import { type Message } from 'roarr';
 import * as sinon from 'sinon';
@@ -40,16 +41,11 @@ afterEach(async () => {
 });
 
 it('detects file change', async () => {
-  const abortController = new AbortController();
+  const onChange = sinon.stub();
 
-  const onChange = sinon.stub().callsFake(async () => {
-    abortController.abort();
-  });
-
-  await watch({
-    abortSignal: abortController.signal,
-    onReady: async () => {
-      await $`touch .fixtures/foo`;
+  const { shutdown } = await watch({
+    debounce: {
+      wait: 100,
     },
     project: path.resolve(__dirname, '../.fixtures'),
     triggers: [
@@ -62,25 +58,24 @@ it('detects file change', async () => {
     ],
   });
 
+  await $`touch .fixtures/foo`;
+
+  await setTimeout(1_000);
+
   expect(onChange.called).toBe(true);
+
+  await shutdown();
 });
 
 // https://github.com/gajus/turbowatch/issues/17
 it('does not log every file change', async () => {
-  const abortController = new AbortController();
-
-  const onChange = sinon.stub().callsFake(async () => {
-    abortController.abort();
-  });
+  const onChange = sinon.stub();
 
   const roarrSpy = spyRoarr();
 
-  await watch({
-    abortSignal: abortController.signal,
-    onReady: async () => {
-      for (let index = 0; index++ < 100; ) {
-        await $`touch .fixtures/foo`;
-      }
+  const { shutdown } = await watch({
+    debounce: {
+      wait: 100,
     },
     project: path.resolve(__dirname, '../.fixtures'),
     triggers: [
@@ -93,7 +88,15 @@ it('does not log every file change', async () => {
     ],
   });
 
+  for (let index = 0; index++ < 100; ) {
+    await $`touch .fixtures/foo`;
+  }
+
+  await setTimeout(1_000);
+
   expect(onChange.called).toBe(true);
 
   expect(roarrSpy.getMessages().length < 20).toBe(true);
+
+  await shutdown();
 });

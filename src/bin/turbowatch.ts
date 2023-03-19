@@ -2,13 +2,19 @@
 
 /* eslint-disable no-console */
 
+import { Logger } from '../Logger';
+import { type TurbowatchController } from '../types';
 import jiti from 'jiti';
 import { existsSync } from 'node:fs';
 import path from 'node:path';
 import { hideBin } from 'yargs/helpers';
 import yargs from 'yargs/yargs';
 
-const main = () => {
+const log = Logger.child({
+  namespace: 'turbowatch',
+});
+
+const main = async () => {
   const argv = yargs(hideBin(process.argv))
     .command('$0 [turbowatch.ts]', 'Start Turbowatch', (commandYargs) => {
       commandYargs.positional('turbowatch.ts', {
@@ -44,7 +50,26 @@ const main = () => {
     return;
   }
 
-  jiti(__filename)(resolvedPath);
+  const userScript = jiti(__filename)(resolvedPath)
+    .default as Promise<TurbowatchController>;
+
+  if (typeof userScript?.then !== 'function') {
+    console.error(
+      'Expected user script to export an instance of TurbowatchController',
+    );
+
+    process.exitCode = 1;
+
+    return;
+  }
+
+  const turbowatchController = await userScript;
+
+  process.once('SIGINT', () => {
+    log.warn('received SIGINT; gracefully terminating');
+
+    void turbowatchController.shutdown();
+  });
 };
 
-main();
+void main();

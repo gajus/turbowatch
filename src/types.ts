@@ -128,17 +128,13 @@ export type Trigger = {
  * @property project absolute path to the directory to watch
  */
 export type ConfigurationInput = {
-  readonly abortSignal?: AbortSignal;
   readonly debounce?: Debounce;
-  readonly onReady?: () => void;
   readonly project: string;
   readonly triggers: readonly TriggerInput[];
 };
 
 export type Configuration = {
-  readonly abortSignal?: AbortSignal;
   readonly debounce: Debounce;
-  readonly onReady?: () => void;
   readonly project: string;
   readonly triggers: readonly TriggerInput[];
 };
@@ -164,4 +160,8 @@ export type Subscription = {
   initialRun: boolean;
   teardown: () => Promise<void>;
   trigger: (events: readonly ChokidarEvent[]) => Promise<void>;
+};
+
+export type TurbowatchController = {
+  shutdown: () => Promise<void>;
 };

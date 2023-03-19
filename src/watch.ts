@@ -8,6 +8,7 @@ import {
   type ConfigurationInput,
   type JsonObject,
   type Subscription,
+  type TurbowatchController,
 } from './types';
 import * as chokidar from 'chokidar';
 import { serializeError } from 'serialize-error';
@@ -17,15 +18,16 @@ const log = Logger.child({
   namespace: 'watch',
 });
 
-export const watch = (configurationInput: ConfigurationInput) => {
+export const watch = (
+  configurationInput: ConfigurationInput,
+): Promise<TurbowatchController> => {
   const {
     project,
     triggers,
-    abortSignal: userAbortSignal,
     debounce: userDebounce,
-    onReady,
   }: Configuration = {
     // as far as I can tell, this is a bug in unicorn/no-unused-properties
+    // https://github.com/sindresorhus/eslint-plugin-unicorn/issues/2051
     // eslint-disable-next-line unicorn/no-unused-properties
     debounce: {
       wait: 1_000,
@@ -33,64 +35,119 @@ export const watch = (configurationInput: ConfigurationInput) => {
     ...configurationInput,
   };
 
-  let abortSignal = userAbortSignal;
+  const abortController = new AbortController();
 
-  if (!abortSignal) {
-    log.debug('binding graceful shutdown to SIGINT');
+  const abortSignal = abortController.signal;
 
-    const abortController = new AbortController();
+  let discoveredFileCount = 0;
 
-    process.once('SIGINT', () => {
-      log.warn('received SIGINT; gracefully terminating');
+  const indexingIntervalId = setInterval(() => {
+    log.trace(
+      'indexed %d %s...',
+      discoveredFileCount,
+      discoveredFileCount === 1 ? 'file' : 'files',
+    );
+  }, 1_000);
 
-      abortController.abort();
-    });
+  const subscriptions: Subscription[] = [];
 
-    abortSignal = abortController.signal;
-  }
+  const watcher = chokidar.watch(project);
 
-  return new Promise((resolve, reject) => {
-    let discoveredFileCount = 0;
+  const shutdown = async () => {
+    clearInterval(indexingIntervalId);
 
-    const indexingIntervalId = setInterval(() => {
-      log.trace(
-        'indexed %d %s...',
-        discoveredFileCount,
-        discoveredFileCount === 1 ? 'file' : 'files',
-      );
-    }, 1_000);
+    abortController.abort();
 
-    const subscriptions: Subscription[] = [];
+    for (const subscription of subscriptions) {
+      const { activeTask } = subscription;
 
-    const watcher = chokidar.watch(project);
-
-    const close = async () => {
-      clearInterval(indexingIntervalId);
-
-      for (const subscription of subscriptions) {
-        const { activeTask } = subscription;
-
-        if (activeTask?.promise) {
-          await activeTask?.promise;
-        }
+      if (activeTask?.promise) {
+        await activeTask?.promise;
       }
-
-      // eslint-disable-next-line promise/prefer-await-to-then
-      await watcher.close().then(resolve).catch(reject);
-    };
-
-    if (abortSignal) {
-      abortSignal.addEventListener(
-        'abort',
-        () => {
-          close();
-        },
-        {
-          once: true,
-        },
-      );
     }
 
+    // eslint-disable-next-line promise/prefer-await-to-then
+    await watcher.close();
+  };
+
+  if (abortSignal) {
+    abortSignal.addEventListener(
+      'abort',
+      () => {
+        shutdown();
+      },
+      {
+        once: true,
+      },
+    );
+  }
+
+  for (const trigger of triggers) {
+    subscriptions.push(
+      subscribe({
+        abortSignal,
+        expression: trigger.expression,
+        id: generateShortId(),
+        initialRun: trigger.initialRun ?? true,
+        interruptible: trigger.interruptible ?? true,
+        name: trigger.name,
+        onChange: trigger.onChange,
+        onTeardown: trigger.onTeardown,
+        retry: trigger.retry ?? {
+          retries: 0,
+        },
+        throttleOutput: trigger.throttleOutput ?? { delay: 1_000 },
+      }),
+    );
+  }
+
+  let queuedChokidarEvents: ChokidarEvent[] = [];
+
+  const evaluateSubscribers = debounce(
+    userDebounce.wait,
+    () => {
+      const currentChokidarEvents =
+        queuedChokidarEvents as readonly ChokidarEvent[];
+
+      queuedChokidarEvents = [];
+
+      for (const subscription of subscriptions) {
+        const relevantEvents = currentChokidarEvents.filter((chokidarEvent) => {
+          return testExpression(subscription.expression, chokidarEvent.path);
+        });
+
+        if (relevantEvents.length) {
+          subscription.trigger(relevantEvents);
+        }
+      }
+    },
+    {
+      noLeading: true,
+    },
+  );
+
+  let ready = false;
+
+  const discoveredFiles: string[] = [];
+
+  watcher.on('all', (event, path) => {
+    if (ready) {
+      queuedChokidarEvents.push({
+        event,
+        path,
+      });
+
+      evaluateSubscribers();
+    } else {
+      if (discoveredFiles.length < 10) {
+        discoveredFiles.push(path);
+      }
+
+      discoveredFileCount++;
+    }
+  });
+
+  return new Promise((resolve, reject) => {
     watcher.on('error', (error) => {
       log.error(
         {
@@ -99,76 +156,10 @@ export const watch = (configurationInput: ConfigurationInput) => {
         'could not watch project',
       );
 
-      close();
-    });
-
-    for (const trigger of triggers) {
-      subscriptions.push(
-        subscribe({
-          abortSignal,
-          expression: trigger.expression,
-          id: generateShortId(),
-          initialRun: trigger.initialRun ?? true,
-          interruptible: trigger.interruptible ?? true,
-          name: trigger.name,
-          onChange: trigger.onChange,
-          onTeardown: trigger.onTeardown,
-          retry: trigger.retry ?? {
-            retries: 0,
-          },
-          throttleOutput: trigger.throttleOutput ?? { delay: 1_000 },
-        }),
-      );
-    }
-
-    let queuedChokidarEvents: ChokidarEvent[] = [];
-
-    const evaluateSubscribers = debounce(
-      userDebounce.wait,
-      () => {
-        const currentChokidarEvents =
-          queuedChokidarEvents as readonly ChokidarEvent[];
-
-        queuedChokidarEvents = [];
-
-        for (const subscription of subscriptions) {
-          const relevantEvents = currentChokidarEvents.filter(
-            (chokidarEvent) => {
-              return testExpression(
-                subscription.expression,
-                chokidarEvent.path,
-              );
-            },
-          );
-
-          if (relevantEvents.length) {
-            subscription.trigger(relevantEvents);
-          }
-        }
-      },
-      {
-        noLeading: true,
-      },
-    );
-
-    let ready = false;
-
-    const discoveredFiles: string[] = [];
-
-    watcher.on('all', (event, path) => {
       if (ready) {
-        queuedChokidarEvents.push({
-          event,
-          path,
-        });
-
-        evaluateSubscribers();
+        shutdown();
       } else {
-        if (discoveredFiles.length < 10) {
-          discoveredFiles.push(path);
-        }
-
-        discoveredFileCount++;
+        reject(error);
       }
     });
 
@@ -204,15 +195,15 @@ export const watch = (configurationInput: ConfigurationInput) => {
 
       log.info('Initial scan complete. Ready for changes');
 
-      if (onReady) {
-        onReady();
+      for (const subscription of subscriptions) {
+        if (subscription.initialRun) {
+          subscription.trigger([]);
+        }
       }
-    });
 
-    for (const subscription of subscriptions) {
-      if (subscription.initialRun) {
-        subscription.trigger([]);
-      }
-    }
+      resolve({
+        shutdown,
+      });
+    });
   });
 };

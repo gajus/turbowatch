@@ -11,7 +11,7 @@ npm install turbowatch
 cat > turbowatch.ts <<'EOD'
 import { watch } from 'turbowatch';
 
-void watch({
+export default watch({
   project: __dirname,
   triggers: [
     {
@@ -24,7 +24,7 @@ void watch({
   ],
 });
 EOD
-npm exec turbowatch
+npm exec turbowatch ./turbowatch.ts
 ```
 
 > **Note** See [logging](#logging) instructions to print logs that explain what Turbowatch is doing.
@@ -68,11 +68,7 @@ import {
   type ChangeEvent,
 } from 'turbowatch';
 
-void watch({
-  // AbortController used to gracefully terminate the service.
-  // If none is provided, then Turbowatch will gracefully terminate
-  // the service when it receives SIGINT.
-  abortSignal: new AbortController().signal,
+export default watch({
   // Debounces triggers by 1 second.
   // Most multi-file spanning changes are non-atomic. Therefore, it is typically desirable to
   // batch together information about multiple file changes that happened in short succession.
@@ -218,7 +214,7 @@ type Expression =
 ```ts
 import { watch } from 'turbowatch';
 
-void watch({
+export default watch({
   project: __dirname,
   triggers: [
     {
@@ -238,7 +234,7 @@ void watch({
 ```ts
 import { watch } from 'turbowatch';
 
-void watch({
+export default watch({
   project: __dirname,
   triggers: [
     {
@@ -281,14 +277,14 @@ type Retry = {
 
 ### Gracefully terminating Turbowatch
 
-`AbortController` is used to gracefully terminate Turbowatch.
+> **Note** `SIGINT` is automatically handled if you are using `turbowatch` executable to evaluate your Turbowatch script. This examples shows how to programmatically gracefully shutdown Turbowatch if you choose not to use `turbowatch` program to evaluate your watch scripts.
 
-If none is provided, then Turbowatch will gracefully terminate the service when it receives [SIGINT](https://nodejs.org/api/process.html#signal-events) signal.
+`watch` returns an instance of `TurbowatchController`, which can be used to gracefully terminate the script:
 
 ```ts
 const abortController = new AbortController();
 
-void watch({
+const { shutdown } = watch({
   abortSignal: abortController.signal,
   project: __dirname,
   triggers: [
@@ -305,11 +301,11 @@ void watch({
 
 // SIGINT is the signal sent when we press Ctrl+C
 process.once('SIGINT', () => {
-  abortController.abort();
+  void shutdown();
 });
 ```
 
-The abort signal will propagate to all `onChange` handlers. The processes that were initiated using `spawn` will receive `SIGTERM` signal.
+Invoking `shutdown` will propagate an abort signal to all `onChange` handlers. The processes that were initiated using [`spawn`](#spawn) will receive `SIGTERM` signal.
 
 ### Handling the `AbortSignal`
 
@@ -354,7 +350,7 @@ const interrupt = async (
 which you can then use to kill your scripts, e.g.
 
 ```ts
-void watch({
+export default watch({
   project: __dirname,
   triggers: [
     {
@@ -378,9 +374,7 @@ void watch({
 ```ts
 import { watch } from 'turbowatch';
 
-const abortController = new AbortController();
-
-void watch({
+export default watch({
   abortSignal: abortController.signal,
   project: __dirname,
   triggers: [
@@ -395,10 +389,6 @@ void watch({
       },
     },
   ],
-});
-
-process.once('SIGINT', () => {
-  abortController.abort();
 });
 ```
 
@@ -463,7 +453,7 @@ Many tools provide built-in watch functionality, e.g. `tsc --watch`. However, th
 
 > **Note** There are some valid use cases for using native watch mode (e.g. `next dev`). However, even in those cases you should consider wrapping those operations in Turbowatch for consistency, e.g.
 > ```ts
-> void watch({
+> export default watch({
 >   project: __dirname,
 >   triggers: [
 >     {
