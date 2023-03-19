@@ -29,23 +29,13 @@ const wait = (time: number) => {
 };
 
 it('evaluates onChange', async () => {
-  const abortController = new AbortController();
-
   const trigger = {
     ...defaultTrigger,
-    abortSignal: abortController.signal,
   } as Trigger;
 
   const subscriptionMock = sinon.mock(trigger);
 
-  const onChange = subscriptionMock
-    .expects('onChange')
-    .once()
-    .callsFake(() => {
-      abortController.abort();
-
-      return Promise.resolve(null);
-    });
+  const onChange = subscriptionMock.expects('onChange').once().resolves(null);
 
   const subscription = subscribe(trigger);
 
@@ -73,23 +63,13 @@ it('swallow onChange errors', async () => {
 });
 
 it('removes duplicates', async () => {
-  const abortController = new AbortController();
-
   const trigger = {
     ...defaultTrigger,
-    abortSignal: abortController.signal,
-  } as Trigger;
+  };
 
   const subscriptionMock = sinon.mock(trigger);
 
-  const onChange = subscriptionMock
-    .expects('onChange')
-    .once()
-    .callsFake(() => {
-      abortController.abort();
-
-      return Promise.resolve(null);
-    });
+  const onChange = subscriptionMock.expects('onChange').once().resolves(null);
 
   const subscription = subscribe(trigger);
 
@@ -123,7 +103,7 @@ it('waits for onChange to complete when { interruptible: false }', async () => {
     ...defaultTrigger,
     abortSignal: abortController.signal,
     interruptible: false,
-  } as Trigger;
+  };
 
   const triggerMock = sinon.mock(trigger);
 
@@ -157,7 +137,7 @@ it('waits for onChange to complete when { interruptible: true } when it receives
   const trigger = {
     ...defaultTrigger,
     abortSignal: abortController.signal,
-  } as Trigger;
+  };
 
   let resolved = false;
 
@@ -190,26 +170,19 @@ it('waits for onChange to complete when { interruptible: true } when it receives
 });
 
 it('retries failing routines', async () => {
-  const abortController = new AbortController();
-
   const trigger = {
     ...defaultTrigger,
-    abortSignal: abortController.signal,
     retry: {
       retries: 1,
     },
-  } as Trigger;
+  };
 
   const subscriptionMock = sinon.mock(trigger);
 
   const onChange = subscriptionMock.expects('onChange').twice();
 
   onChange.onFirstCall().rejects(new Error('foo'));
-  onChange.onSecondCall().callsFake(() => {
-    abortController.abort();
-
-    return Promise.resolve(null);
-  });
+  onChange.onSecondCall().resolves(null);
 
   const subscription = await subscribe(trigger);
 
@@ -219,12 +192,9 @@ it('retries failing routines', async () => {
 });
 
 it('reports { first: true } only for the first event', async () => {
-  const abortController = new AbortController();
-
   const trigger = {
     ...defaultTrigger,
-    abortSignal: abortController.signal,
-  } as Trigger;
+  };
 
   const subscriptionMock = sinon.mock(trigger);
 
@@ -232,11 +202,7 @@ it('reports { first: true } only for the first event', async () => {
 
   onChange.onFirstCall().resolves(null);
 
-  onChange.onSecondCall().callsFake(() => {
-    abortController.abort();
-
-    return Promise.resolve(null);
-  });
+  onChange.onSecondCall().resolves(null);
 
   const subscription = subscribe(trigger);
 
