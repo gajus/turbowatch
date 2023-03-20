@@ -6,7 +6,6 @@
 
 import { Logger } from '../Logger';
 import { type TurbowatchConfiguration } from '../types';
-import { watch } from '../watch';
 import jiti from 'jiti';
 import { existsSync } from 'node:fs';
 import path from 'node:path';
@@ -38,6 +37,8 @@ const resolvePath = (inputPath: string): string | null => {
 };
 
 const main = async () => {
+  const { watch } = await import('../watch');
+
   const argv = await yargs(hideBin(process.argv))
     .command('$0 [scripts...]', 'Start Turbowatch', (commandYargs) => {
       commandYargs.positional('scripts', {
