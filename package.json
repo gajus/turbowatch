@@ -13,6 +13,7 @@
     "micromatch": "^4.0.5",
     "p-retry": "^4.6.2",
     "roarr": "^7.14.6",
+    "semver": "^7.3.8",
     "serialize-error": "^11.0.0",
     "throttle-debounce": "^5.0.0",
     "yargs": "^17.7.1",

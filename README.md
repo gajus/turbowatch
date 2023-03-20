@@ -38,6 +38,7 @@ Refer to recipes:
 * [Handling the `AbortSignal`](#handling-the-abortsignal)
 * [Tearing down project](#tearing-down-project)
 * [Throttling `spawn` output](#throttling-spawn-output)
+* [Using custom file watching backend](#using-custom-file-watching-backend)
 
 ||Turbowatch|Nodemon|
 |---|---|---|
@@ -488,6 +489,23 @@ worker:dev: 2fb02d72 > [18:48:37.408]  95ms debug @utilities #waitFor: Waiting f
 ```
 
 However, this means that some logs might come out of order. To disable this feature, set `{ throttleOutput: { delay: 0 } }`.
+
+### Using custom file watching backend
+
+By default, Turbowatch uses `fs.watch` on MacOS (Node.js v19.1+) and fallsback to [chokidar](https://github.com/paulmillr/chokidar) on other platforms. However, you can override this behaviour and even implement your own file change detection logic.
+
+```ts
+import {
+  watch,
+  TurboWatcher,
+} from 'turbowatch';
+
+export default watch({
+  Watcher: TurboWatcher,
+  project: __dirname,
+  triggers: [],
+});
+```
 
 ### Logging
 

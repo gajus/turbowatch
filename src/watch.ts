@@ -1,4 +1,4 @@
-import { ChokidarWatcher } from './backends/ChokidarWatcher';
+import { TurboWatcher } from './backends/TurboWatcher';
 import { generateShortId } from './generateShortId';
 import { Logger } from './Logger';
 import { subscribe } from './subscribe';
@@ -25,6 +25,7 @@ export const watch = (
     project,
     triggers,
     debounce: userDebounce,
+    Watcher,
   }: Configuration = {
     // as far as I can tell, this is a bug in unicorn/no-unused-properties
     // https://github.com/sindresorhus/eslint-plugin-unicorn/issues/2051
@@ -32,6 +33,9 @@ export const watch = (
     debounce: {
       wait: 1_000,
     },
+
+    // eslint-disable-next-line unicorn/no-unused-properties
+    Watcher: TurboWatcher,
     ...configurationInput,
   };
 
@@ -51,7 +55,7 @@ export const watch = (
 
   const subscriptions: Subscription[] = [];
 
-  const watcher = new ChokidarWatcher(project);
+  const watcher = new Watcher(project);
 
   const shutdown = async () => {
     clearInterval(indexingIntervalId);

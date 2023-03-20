@@ -1,5 +1,6 @@
 // cspell:words idirname imatch iname wholename
 
+import { type FileWatchingBackend } from './backends/FileWatchingBackend';
 import { type ProcessOutput } from 'zx';
 
 /* eslint-disable @typescript-eslint/sort-type-union-intersection-members */
@@ -125,16 +126,20 @@ export type Trigger = {
   throttleOutput: Throttle;
 };
 
+export type WatcherConstructable = new (project: string) => FileWatchingBackend;
+
 /**
  * @property project absolute path to the directory to watch
  */
 export type ConfigurationInput = {
+  readonly Watcher?: WatcherConstructable;
   readonly debounce?: Debounce;
   readonly project: string;
   readonly triggers: readonly TriggerInput[];
 };
 
 export type Configuration = {
+  readonly Watcher: WatcherConstructable;
   readonly debounce: Debounce;
   readonly project: string;
   readonly triggers: readonly TriggerInput[];
