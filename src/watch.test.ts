@@ -4,7 +4,7 @@ import path from 'path';
 import { type Message } from 'roarr';
 import * as sinon from 'sinon';
 import { afterEach, beforeEach, expect, it } from 'vitest';
-import { $ } from 'zx';
+import fs from 'node:fs/promises';
 
 const spyRoarr = () => {
   const { ROARR_LOG } = process.env;
@@ -28,16 +28,23 @@ const spyRoarr = () => {
   };
 };
 
-beforeEach(async () => {
-  $.verbose = false;
+const fixturesPath = path.resolve(__dirname, '../.fixtures');
 
-  await $`rm -fr .fixtures`;
-  await $`mkdir .fixtures`;
-  await $`touch .fixtures/foo`;
+beforeEach(async () => {
+  await fs.rm(fixturesPath, {
+    recursive: true,
+    force: true,
+  });
+
+  await fs.mkdir(fixturesPath);
+  await fs.writeFile(path.join(fixturesPath, 'foo'), '');
 });
 
 afterEach(async () => {
-  await $`rm -fr .fixtures`;
+  await fs.rm(fixturesPath, {
+    recursive: true,
+    force: true,
+  });
 });
 
 it('detects file change', async () => {
@@ -58,7 +65,7 @@ it('detects file change', async () => {
     ],
   });
 
-  await $`touch .fixtures/foo`;
+  await fs.writeFile(path.join(fixturesPath, 'foo'), '');
 
   await setTimeout(1_000);
 
@@ -89,7 +96,7 @@ it('does not log every file change', async () => {
   });
 
   for (let index = 0; index++ < 100; ) {
-    await $`touch .fixtures/foo`;
+    await fs.writeFile(path.join(fixturesPath, 'foo'), '');
   }
 
   await setTimeout(1_000);
