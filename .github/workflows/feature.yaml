@@ -36,6 +36,8 @@ jobs:
           cache: "npm"
       - run: npm ci
       - run: npm run test:vitest
+        env:
+          ROARR_LOG: 'true'
       - run: npm run build
     timeout-minutes: 10
     strategy:
