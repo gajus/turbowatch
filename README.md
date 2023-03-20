@@ -38,6 +38,7 @@ Refer to recipes:
 * [Handling the `AbortSignal`](#handling-the-abortsignal)
 * [Tearing down project](#tearing-down-project)
 * [Throttling `spawn` output](#throttling-spawn-output)
+* [Watching multiple scripts](#watching-multiple-scripts)
 * [Using custom file watching backend](#using-custom-file-watching-backend)
 
 ||Turbowatch|Nodemon|
@@ -489,6 +490,16 @@ worker:dev: 2fb02d72 > [18:48:37.408]  95ms debug @utilities #waitFor: Waiting f
 ```
 
 However, this means that some logs might come out of order. To disable this feature, set `{ throttleOutput: { delay: 0 } }`.
+
+### Watching multiple scripts
+
+By default, `turbowatch` will look for `turbowatch.ts` script in the current working directory. However, you can pass multiple scripts to `turbowatch` to run them concurrently:
+
+```bash
+turbowatch ./foo.ts ./bar.ts
+```
+
+> **Warning** Scripts executed using NPM and PNPM (issue [#2653](https://github.com/pnpm/pnpm/issues/2653#issuecomment-1476686711)) cannot be gracefully shutdown. If your scripts need to be gracefully terminated, then avoid wrapping them in NPM or PNPM scripts.
 
 ### Using custom file watching backend
 

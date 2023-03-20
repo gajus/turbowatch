@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 
-/* eslint-disable node/shebang */
 /* eslint-disable no-console */
+/* eslint-disable node/shebang */
+/* eslint-disable require-atomic-updates */
 
 import { Logger } from '../Logger';
 import { type TurbowatchController } from '../types';
@@ -15,21 +16,10 @@ const log = Logger.child({
   namespace: 'turbowatch',
 });
 
-const main = async () => {
-  const argv = await yargs(hideBin(process.argv))
-    .command('$0 [turbowatch.ts]', 'Start Turbowatch', (commandYargs) => {
-      commandYargs.positional('turbowatch.ts', {
-        alias: 'source',
-        default: 'turbowatch.ts',
-        describe: 'Script with Turbowatch instructions.',
-        type: 'string',
-      });
-    })
-    .parse();
+const resolvePath = (inputPath: string): string | null => {
+  let resolvedPath: string | null = null;
 
-  let resolvedPath: string | undefined;
-
-  const providedPath = path.resolve(process.cwd(), argv.source as string);
+  const providedPath = path.resolve(process.cwd(), inputPath);
 
   const possiblePaths = [providedPath];
 
@@ -43,34 +33,61 @@ const main = async () => {
     }
   }
 
-  if (!resolvedPath) {
-    console.error('%s not found', providedPath);
+  return resolvedPath;
+};
 
-    process.exitCode = 1;
+const main = async () => {
+  const argv = await yargs(hideBin(process.argv))
+    .command('$0 [scripts...]', 'Start Turbowatch', (commandYargs) => {
+      commandYargs.positional('scripts', {
+        array: true,
+        default: 'turbowatch.ts',
+        describe: 'Script with Turbowatch instructions.',
+        type: 'string',
+      });
+    })
+    .parse();
 
-    return;
+  const scriptPaths = argv.scripts as readonly string[];
+
+  const resolvedScriptPaths: string[] = [];
+
+  for (const scriptPath of scriptPaths) {
+    const resolvedPath = resolvePath(scriptPath);
+
+    if (!resolvedPath) {
+      console.error('%s not found', scriptPath);
+
+      process.exitCode = 1;
+
+      return;
+    }
+
+    resolvedScriptPaths.push(resolvedPath);
   }
 
-  const userScript = jiti(__filename)(resolvedPath)
-    .default as Promise<TurbowatchController>;
+  for (const resolvedPath of resolvedScriptPaths) {
+    const userScript = jiti(__filename)(resolvedPath)
+      .default as Promise<TurbowatchController>;
 
-  if (typeof userScript?.then !== 'function') {
-    console.error(
-      'Expected user script to export an instance of TurbowatchController',
-    );
+    if (typeof userScript?.then !== 'function') {
+      console.error(
+        'Expected user script to export an instance of TurbowatchController',
+      );
 
-    process.exitCode = 1;
+      process.exitCode = 1;
 
-    return;
+      return;
+    }
+
+    const turbowatchController = await userScript;
+
+    process.once('SIGINT', () => {
+      log.warn('received SIGINT; gracefully terminating');
+
+      void turbowatchController.shutdown();
+    });
   }
-
-  const turbowatchController = await userScript;
-
-  process.once('SIGINT', () => {
-    log.warn('received SIGINT; gracefully terminating');
-
-    void turbowatchController.shutdown();
-  });
 };
 
 void main();
