@@ -3,7 +3,7 @@ import { generateShortId } from './generateShortId';
 import { Logger } from './Logger';
 import {
   type ActiveTask,
-  type ChokidarEvent,
+  type FileChangeEvent,
   type Subscription,
   type Trigger,
 } from './types';
@@ -18,7 +18,7 @@ export const subscribe = (trigger: Trigger): Subscription => {
 
   let first = true;
 
-  let eventQueue: ChokidarEvent[] = [];
+  let fileChangeEventQueue: FileChangeEvent[] = [];
 
   const handleSubscriptionEvent = async () => {
     if (trigger.abortSignal?.aborted) {
@@ -88,27 +88,26 @@ export const subscribe = (trigger: Trigger): Subscription => {
       }
     }
 
-    // TODO differentiate between "add", "unlink" and "change" events
     const affectedPaths: string[] = [];
 
     const event = {
-      files: eventQueue
-        .filter(({ path }) => {
-          if (affectedPaths.includes(path)) {
+      files: fileChangeEventQueue
+        .filter(({ filename }) => {
+          if (affectedPaths.includes(filename)) {
             return false;
           }
 
-          affectedPaths.push(path);
+          affectedPaths.push(filename);
           return true;
         })
-        .map(({ path }) => {
+        .map(({ filename }) => {
           return {
-            name: path,
+            name: filename,
           };
         }),
     };
 
-    eventQueue = [];
+    fileChangeEventQueue = [];
 
     if (trigger.initialRun && reportFirst) {
       log.trace('initial run...');
@@ -205,8 +204,8 @@ export const subscribe = (trigger: Trigger): Subscription => {
         });
       }
     },
-    trigger: async (events: readonly ChokidarEvent[]) => {
-      eventQueue.push(...events);
+    trigger: async (events: readonly FileChangeEvent[]) => {
+      fileChangeEventQueue.push(...events);
 
       await handleSubscriptionEvent();
     },

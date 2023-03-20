@@ -76,16 +76,13 @@ it('removes duplicates', async () => {
 
   subscription.trigger([
     {
-      event: 'add',
-      path: '/foo',
+      filename: '/foo',
     },
     {
-      event: 'add',
-      path: '/foo',
+      filename: '/foo',
     },
     {
-      event: 'add',
-      path: '/bar',
+      filename: '/bar',
     },
   ]);
 

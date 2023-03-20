@@ -1,4 +1,4 @@
-import { Chokidar } from './backends/Chokidar';
+import { ChokidarWatcher } from './backends/ChokidarWatcher';
 import { generateShortId } from './generateShortId';
 import { Logger } from './Logger';
 import { subscribe } from './subscribe';
@@ -51,7 +51,7 @@ export const watch = (
 
   const subscriptions: Subscription[] = [];
 
-  const watcher = new Chokidar(project);
+  const watcher = new ChokidarWatcher(project);
 
   const shutdown = async () => {
     clearInterval(indexingIntervalId);
