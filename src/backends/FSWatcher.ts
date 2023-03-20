@@ -20,10 +20,22 @@ const findSymlinks = async (project: string) => {
   }> = [];
 
   for (const filename of filenames) {
-    const stats = await lstat(filename);
+    let stats;
+
+    try {
+      stats = await lstat(filename);
+    } catch {
+      continue;
+    }
 
     if (stats.isSymbolicLink()) {
-      const fileRealpath = await realpath(filename);
+      let fileRealpath;
+
+      try {
+        fileRealpath = await realpath(filename);
+      } catch {
+        continue;
+      }
 
       if (!symlinks.some((symlink) => symlink.symlink === fileRealpath)) {
         symlinks.push({
@@ -39,6 +51,8 @@ const findSymlinks = async (project: string) => {
 
 export class FSWatcher extends FileWatchingBackend {
   private fsWatchers: NativeFSWatcher[] = [];
+
+  private closed = false;
 
   public constructor(project: string) {
     super();
@@ -63,6 +77,10 @@ export class FSWatcher extends FileWatchingBackend {
     // TODO detect when a new symlink is added to the project
     // eslint-disable-next-line promise/prefer-await-to-then
     findSymlinks(project).then((symlinks) => {
+      if (this.closed) {
+        return;
+      }
+
       for (const symlink of symlinks) {
         this.fsWatchers.push(
           watch(
@@ -91,6 +109,8 @@ export class FSWatcher extends FileWatchingBackend {
   }
 
   public async close() {
+    this.closed = true;
+
     for (const fsWatcher of this.fsWatchers) {
       fsWatcher.close();
     }
