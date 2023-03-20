@@ -59,6 +59,7 @@ export class FSWatcher extends FileWatchingBackend {
 
     this.fsWatchers.push(watchPath(project));
 
+    // TODO detect when a new symlink is added to the project
     // eslint-disable-next-line promise/prefer-await-to-then
     findSymlinks(project).then((symlinks) => {
       for (const symlink of symlinks) {
