@@ -124,13 +124,6 @@ for (const { Watcher, name } of backends) {
 
     await setTimeout(100);
 
-    // TODO fix this test
-    // expect(
-    //   onChange.calledWith({
-    //     filename: path.join(fixturesPath, 'bar'),
-    //   }),
-    // ).toBe(true);
-
     expect(
       onChange.calledWith({
         filename: path.join(fixturesPath, 'foo', 'bar'),
@@ -165,11 +158,11 @@ for (const { Watcher, name } of backends) {
     await setTimeout(100);
 
     // TODO fix this test
-    // expect(
-    //   onChange.calledWith({
-    //     filename: path.join(fixturesPath, 'foo', 'bar', 'baz'),
-    //   }),
-    // ).toBe(true);
+    expect(
+      onChange.calledWith({
+        filename: path.join(fixturesPath, 'foo', 'bar', 'baz'),
+      }),
+    ).toBe(true);
 
     expect(
       onChange.calledWith({
