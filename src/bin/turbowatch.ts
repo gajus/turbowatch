@@ -43,7 +43,7 @@ const main = async () => {
     .command('$0 [scripts...]', 'Start Turbowatch', (commandYargs) => {
       commandYargs.positional('scripts', {
         array: true,
-        default: 'turbowatch.ts',
+        default: ['turbowatch.ts'],
         describe: 'Script with Turbowatch instructions.',
         type: 'string',
       });
