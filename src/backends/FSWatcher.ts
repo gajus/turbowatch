@@ -2,6 +2,7 @@
 
 import { FileWatchingBackend } from './FileWatchingBackend';
 import fs, { type FSWatcher as NativeFSWatcher } from 'node:fs';
+import path from 'node:path';
 
 export class FSWatcher extends FileWatchingBackend {
   private fsWatcher: NativeFSWatcher;
@@ -12,10 +13,12 @@ export class FSWatcher extends FileWatchingBackend {
     this.fsWatcher = fs.watch(
       project,
       {
+        encoding: 'utf8',
+        persistent: true,
         recursive: true,
       },
       (eventType, filename) => {
-        this.emit('change', { filename });
+        this.emit('change', { filename: path.resolve(project, filename) });
       },
     );
 

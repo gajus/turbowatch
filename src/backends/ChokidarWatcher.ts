@@ -7,14 +7,16 @@ export class ChokidarWatcher extends FileWatchingBackend {
   public constructor(project: string) {
     super();
 
-    this.chokidar = chokidar.watch(project);
+    this.chokidar = chokidar.watch(project, {
+      ignoreInitial: true,
+    });
 
     this.chokidar.on('ready', () => {
       this.emit('ready');
-    });
 
-    this.chokidar.on('all', (event, filename) => {
-      this.emit('change', { filename });
+      this.chokidar.on('all', (event, filename) => {
+        this.emit('change', { filename });
+      });
     });
   }
 

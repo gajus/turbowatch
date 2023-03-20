@@ -29,7 +29,7 @@ const spyRoarr = () => {
   };
 };
 
-const fixturesPath = path.resolve(__dirname, '../.fixtures');
+const fixturesPath = path.resolve(__dirname, '.fixtures');
 
 beforeEach(async () => {
   await fs.rm(fixturesPath, {
@@ -55,7 +55,7 @@ it('detects file change', async () => {
     debounce: {
       wait: 100,
     },
-    project: path.resolve(__dirname, '../.fixtures'),
+    project: fixturesPath,
     triggers: [
       {
         expression: ['match', 'foo', 'basename'],
@@ -85,7 +85,7 @@ it('does not log every file change', async () => {
     debounce: {
       wait: 100,
     },
-    project: path.resolve(__dirname, '../.fixtures'),
+    project: fixturesPath,
     triggers: [
       {
         expression: ['match', 'foo', 'basename'],
