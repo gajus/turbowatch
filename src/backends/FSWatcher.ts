@@ -7,10 +7,11 @@ import { lstat, realpath } from 'node:fs/promises';
 import path from 'node:path';
 
 const findSymlinks = async (project: string) => {
-  const filenames = await glob('./**/*', {
+  const filenames = await glob('./**/*/', {
     absolute: true,
     cwd: project,
     dot: true,
+    follow: false,
   });
 
   const symlinks: Array<{
