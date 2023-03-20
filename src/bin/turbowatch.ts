@@ -1,3 +1,6 @@
+#!/usr/bin/env node
+
+/* eslint-disable node/shebang */
 /* eslint-disable no-console */
 
 import { Logger } from '../Logger';
