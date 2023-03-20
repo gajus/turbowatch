@@ -120,6 +120,7 @@ export type Trigger = {
   name: string;
   onChange: OnChangeEventHandler;
   onTeardown?: OnTeardownEventHandler;
+  persistent: boolean;
   retry: Retry;
   throttleOutput: Throttle;
 };

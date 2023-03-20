@@ -62,6 +62,12 @@ export const subscribe = (trigger: Trigger): Subscription => {
 
         activeTask = null;
       } else {
+        if (trigger.persistent) {
+          log.warn('ignoring event because the trigger is persistent');
+
+          return undefined;
+        }
+
         log.warn(
           'waiting for %s (%s) task to complete',
           trigger.name,
