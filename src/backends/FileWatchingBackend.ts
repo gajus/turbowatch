@@ -9,7 +9,7 @@ interface BackendEventEmitter {
   on(event: 'change', listener: ({ filename }: FileChangeEvent) => void): this;
 }
 
-export abstract class Backend
+export abstract class FileWatchingBackend
   extends EventEmitter
   implements BackendEventEmitter
 {

@@ -1,7 +1,7 @@
-import { Backend } from './Backend';
+import { FileWatchingBackend } from './FileWatchingBackend';
 import * as chokidar from 'chokidar';
 
-export class Chokidar extends Backend {
+export class Chokidar extends FileWatchingBackend {
   private chokidar: chokidar.FSWatcher;
 
   public constructor(project: string) {
