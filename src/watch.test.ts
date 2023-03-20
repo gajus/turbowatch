@@ -1,12 +1,13 @@
 import { watch } from './watch';
 import fs from 'node:fs/promises';
+import path from 'node:path';
 import { setTimeout } from 'node:timers/promises';
-import path from 'path';
 import { type Message } from 'roarr';
 import * as sinon from 'sinon';
 import { afterEach, beforeEach, expect, it } from 'vitest';
 
 const spyRoarr = () => {
+  // eslint-disable-next-line node/no-process-env
   const { ROARR_LOG } = process.env;
 
   if (ROARR_LOG !== 'true') {
