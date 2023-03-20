@@ -2,6 +2,7 @@ import { isFSWatcherAvailable } from '../isFSWatcherAvailable';
 import { ChokidarWatcher } from './ChokidarWatcher';
 import { type FileWatchingBackend } from './FileWatchingBackend';
 import { FSWatcher } from './FSWatcher';
+import { TurboWatcher } from './TurboWatcher';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { setTimeout } from 'node:timers/promises';
@@ -42,6 +43,10 @@ const backends = [
   {
     name: 'FS',
     Watcher: FSWatcher,
+  },
+  {
+    name: 'Turbo',
+    Watcher: TurboWatcher,
   },
 ];
 
