@@ -2,10 +2,8 @@ dist
 node_modules
 *.log
 .*
-!.eslintignore
 !.eslintrc.js
 !.github
 !.gitignore
-!.npmignore
 !.README
 !.releaserc
