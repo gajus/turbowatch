@@ -34,7 +34,7 @@
     "vitest": "^0.28.5"
   },
   "engines": {
-    "node": ">=16.0"
+    "node": ">=18"
   },
   "files": [
     "./src",

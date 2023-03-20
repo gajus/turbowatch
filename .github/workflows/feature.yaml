@@ -1,5 +1,5 @@
 jobs:
-  test:
+  lint:
     runs-on: ubuntu-latest
     environment: release
     name: Test
@@ -11,15 +11,41 @@ jobs:
       - name: setup node.js
         uses: actions/setup-node@v2
         with:
-          node-version: "18"
+          node-version: "19"
           cache: "npm"
       - run: npm ci
       - run: npm run lint:eslint
       - run: npm run lint:tsc
       - run: npm run lint:cspell
+    timeout-minutes: 10
+  test:
+    needs:
+      - lint
+    runs-on: ${{ matrix.os }}
+    environment: release
+    name: Test
+    steps:
+      - name: setup repository
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: setup node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: ${{ matrix.version }}
+          cache: "npm"
+      - run: npm ci
       - run: npm run test:vitest
       - run: npm run build
     timeout-minutes: 10
+    strategy:
+      matrix:
+        version:
+          - 18
+          - 19
+        os:
+          - ubuntu-latest
+          - windows-latest
 name: Test and build
 on:
   pull_request:
