@@ -1,7 +1,7 @@
 jobs:
   lint:
     environment: release
-    name: Test
+    name: Lint
     runs-on: ubuntu-latest
     steps:
       - name: setup repository
@@ -43,7 +43,6 @@ jobs:
       matrix:
         os:
           - ubuntu-latest
-          - windows-latest
         version:
           - 18
           - 19
