@@ -1,8 +1,8 @@
 jobs:
   test:
-    runs-on: ubuntu-latest
     environment: release
     name: Test
+    runs-on: ubuntu-latest
     steps:
       - name: setup repository
         uses: actions/checkout@v2
@@ -11,20 +11,20 @@ jobs:
       - name: setup node.js
         uses: actions/setup-node@v2
         with:
-          node-version: "18"
-          cache: "npm"
+          cache: 'npm'
+          node-version: '19'
       - run: npm ci
       - run: npm run lint:eslint
       - run: npm run lint:tsc
       - run: npm run lint:cspell
-      - run: npm run test:vitest
-        env:
+      - env:
           ROARR_LOG: 'true'
+        run: npm run test:vitest
       - run: npm run build
-      - run: npx semantic-release
-        env:
+      - env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: npx semantic-release
 name: Test, build and release
 on:
   push:

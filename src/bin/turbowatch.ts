@@ -1,5 +1,3 @@
-#!/usr/bin/env node
-
 /* eslint-disable no-console */
 
 import { Logger } from '../Logger';
@@ -15,7 +13,7 @@ const log = Logger.child({
 });
 
 const main = async () => {
-  const argv = yargs(hideBin(process.argv))
+  const argv = await yargs(hideBin(process.argv))
     .command('$0 [turbowatch.ts]', 'Start Turbowatch', (commandYargs) => {
       commandYargs.positional('turbowatch.ts', {
         alias: 'source',
@@ -24,7 +22,7 @@ const main = async () => {
         type: 'string',
       });
     })
-    .parseSync();
+    .parse();
 
   let resolvedPath: string | undefined;
 

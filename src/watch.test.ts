@@ -1,14 +1,13 @@
 import { watch } from './watch';
+import fs from 'node:fs/promises';
+import path from 'node:path';
 import { setTimeout } from 'node:timers/promises';
-import path from 'path';
 import { type Message } from 'roarr';
 import * as sinon from 'sinon';
 import { afterEach, beforeEach, expect, it } from 'vitest';
-import { $ } from 'zx';
-
-$.verbose = false;
 
 const spyRoarr = () => {
+  // eslint-disable-next-line node/no-process-env
   const { ROARR_LOG } = process.env;
 
   if (ROARR_LOG !== 'true') {
@@ -30,14 +29,23 @@ const spyRoarr = () => {
   };
 };
 
+const fixturesPath = path.resolve(__dirname, '../.fixtures');
+
 beforeEach(async () => {
-  await $`rm -fr .fixtures`;
-  await $`mkdir .fixtures`;
-  await $`touch .fixtures/foo`;
+  await fs.rm(fixturesPath, {
+    force: true,
+    recursive: true,
+  });
+
+  await fs.mkdir(fixturesPath);
+  await fs.writeFile(path.join(fixturesPath, 'foo'), '');
 });
 
 afterEach(async () => {
-  await $`rm -fr .fixtures`;
+  await fs.rm(fixturesPath, {
+    force: true,
+    recursive: true,
+  });
 });
 
 it('detects file change', async () => {
@@ -58,7 +66,7 @@ it('detects file change', async () => {
     ],
   });
 
-  await $`touch .fixtures/foo`;
+  await fs.writeFile(path.join(fixturesPath, 'foo'), '');
 
   await setTimeout(1_000);
 
@@ -89,7 +97,7 @@ it('does not log every file change', async () => {
   });
 
   for (let index = 0; index++ < 100; ) {
-    await $`touch .fixtures/foo`;
+    await fs.writeFile(path.join(fixturesPath, 'foo'), '');
   }
 
   await setTimeout(1_000);
