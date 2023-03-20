@@ -8,6 +8,8 @@ export class ChokidarWatcher extends FileWatchingBackend {
     super();
 
     this.chokidar = chokidar.watch(project, {
+      awaitWriteFinish: false,
+      followSymlinks: true,
       ignoreInitial: true,
     });
 
@@ -15,6 +17,10 @@ export class ChokidarWatcher extends FileWatchingBackend {
       this.emit('ready');
 
       this.chokidar.on('all', (event, filename) => {
+        if (event === 'addDir') {
+          return;
+        }
+
         this.emit('change', { filename });
       });
     });
