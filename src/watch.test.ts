@@ -6,8 +6,6 @@ import * as sinon from 'sinon';
 import { afterEach, beforeEach, expect, it } from 'vitest';
 import { $ } from 'zx';
 
-$.verbose = false;
-
 const spyRoarr = () => {
   const { ROARR_LOG } = process.env;
 
@@ -31,6 +29,8 @@ const spyRoarr = () => {
 };
 
 beforeEach(async () => {
+  $.verbose = false;
+
   await $`rm -fr .fixtures`;
   await $`mkdir .fixtures`;
   await $`touch .fixtures/foo`;
