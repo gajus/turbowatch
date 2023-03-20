@@ -1,3 +1,4 @@
+import { isFSWatcherAvailable } from '../isFSWatcherAvailable';
 import { ChokidarWatcher } from './ChokidarWatcher';
 import { type FileWatchingBackend } from './FileWatchingBackend';
 import { FSWatcher } from './FSWatcher';
@@ -45,6 +46,10 @@ const backends = [
 ];
 
 for (const { Watcher, name } of backends) {
+  if (isFSWatcherAvailable() === false && Watcher === FSWatcher) {
+    continue;
+  }
+
   it('[' + name + '] detects file change', async () => {
     const watcher = new Watcher(fixturesPath);
 
