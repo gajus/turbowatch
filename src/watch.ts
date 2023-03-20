@@ -1,16 +1,16 @@
+import { Chokidar } from './backends/Chokidar';
 import { generateShortId } from './generateShortId';
 import { Logger } from './Logger';
 import { subscribe } from './subscribe';
 import { testExpression } from './testExpression';
 import {
-  type ChokidarEvent,
   type Configuration,
   type ConfigurationInput,
+  type FileChangeEvent,
   type JsonObject,
   type Subscription,
   type TurbowatchController,
 } from './types';
-import * as chokidar from 'chokidar';
 import { serializeError } from 'serialize-error';
 import { debounce } from 'throttle-debounce';
 
@@ -51,7 +51,7 @@ export const watch = (
 
   const subscriptions: Subscription[] = [];
 
-  const watcher = chokidar.watch(project);
+  const watcher = new Chokidar(project);
 
   const shutdown = async () => {
     clearInterval(indexingIntervalId);
@@ -102,20 +102,25 @@ export const watch = (
     );
   }
 
-  let queuedChokidarEvents: ChokidarEvent[] = [];
+  let queuedFileChangeEvents: FileChangeEvent[] = [];
 
   const evaluateSubscribers = debounce(
     userDebounce.wait,
     () => {
-      const currentChokidarEvents =
-        queuedChokidarEvents as readonly ChokidarEvent[];
+      const currentFileChangeEvents =
+        queuedFileChangeEvents as readonly FileChangeEvent[];
 
-      queuedChokidarEvents = [];
+      queuedFileChangeEvents = [];
 
       for (const subscription of subscriptions) {
-        const relevantEvents = currentChokidarEvents.filter((chokidarEvent) => {
-          return testExpression(subscription.expression, chokidarEvent.path);
-        });
+        const relevantEvents = currentFileChangeEvents.filter(
+          (fileChangeEvent) => {
+            return testExpression(
+              subscription.expression,
+              fileChangeEvent.filename,
+            );
+          },
+        );
 
         if (relevantEvents.length) {
           void subscription.trigger(relevantEvents);
@@ -131,17 +136,16 @@ export const watch = (
 
   const discoveredFiles: string[] = [];
 
-  watcher.on('all', (event, path) => {
+  watcher.on('change', ({ filename }) => {
     if (ready) {
-      queuedChokidarEvents.push({
-        event,
-        path,
+      queuedFileChangeEvents.push({
+        filename,
       });
 
       evaluateSubscribers();
     } else {
       if (discoveredFiles.length < 10) {
-        discoveredFiles.push(path);
+        discoveredFiles.push(filename);
       }
 
       discoveredFileCount++;
@@ -180,7 +184,7 @@ export const watch = (
           discoveredFileCount,
           project,
         );
-      } else {
+      } else if (discoveredFiles.length > 0) {
         log.trace(
           {
             files: discoveredFiles.map((file) => {

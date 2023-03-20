@@ -140,9 +140,8 @@ export type Configuration = {
   readonly triggers: readonly TriggerInput[];
 };
 
-export type ChokidarEvent = {
-  event: 'add' | 'addDir' | 'change' | 'unlink' | 'unlinkDir';
-  path: string;
+export type FileChangeEvent = {
+  filename: string;
 };
 
 /**
@@ -160,7 +159,7 @@ export type Subscription = {
   expression: Expression;
   initialRun: boolean;
   teardown: () => Promise<void>;
-  trigger: (events: readonly ChokidarEvent[]) => Promise<void>;
+  trigger: (events: readonly FileChangeEvent[]) => Promise<void>;
 };
 
 export type TurbowatchController = {
