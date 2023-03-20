@@ -37,7 +37,7 @@ const resolvePath = (inputPath: string): string | null => {
 };
 
 const main = async () => {
-  const { watch } = await import('../watch');
+  const { watch } = jiti(__filename)('../watch');
 
   const argv = await yargs(hideBin(process.argv))
     .command('$0 [scripts...]', 'Start Turbowatch', (commandYargs) => {
