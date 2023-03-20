@@ -22,9 +22,14 @@ const prefixLines = (subject: string, prefix: string): string => {
 export const createSpawn = (
   taskId: string,
   {
+    cwd = process.cwd(),
     abortSignal,
     throttleOutput,
-  }: { abortSignal?: AbortSignal; throttleOutput?: Throttle } = {},
+  }: {
+    abortSignal?: AbortSignal;
+    cwd?: string;
+    throttleOutput?: Throttle;
+  } = {},
 ) => {
   let stdoutBuffer: string[] = [];
   let stderrBuffer: string[] = [];
@@ -55,6 +60,8 @@ export const createSpawn = (
   );
 
   return async (pieces: TemplateStringsArray, ...args: any[]) => {
+    $.cwd = cwd;
+
     // eslint-disable-next-line promise/prefer-await-to-then
     const processPromise = $(pieces, ...args)
       .nothrow()
