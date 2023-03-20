@@ -4,11 +4,20 @@ import { Logger } from '../Logger';
 import { ChokidarWatcher } from './ChokidarWatcher';
 import { FileWatchingBackend } from './FileWatchingBackend';
 import { FSWatcher } from './FSWatcher';
+import { platform } from 'node:os';
 import * as semver from 'semver';
 
 const log = Logger.child({
   namespace: 'TurboWatcher',
 });
+
+const isMacOs = () => {
+  return platform() === 'darwin';
+};
+
+const isLinux = () => {
+  return platform() === 'linux';
+};
 
 export class TurboWatcher extends FileWatchingBackend {
   private backend: FileWatchingBackend;
@@ -16,7 +25,7 @@ export class TurboWatcher extends FileWatchingBackend {
   public constructor(project: string) {
     super();
 
-    if (semver.gte(process.version, '19.1.0')) {
+    if (semver.gte(process.version, '19.1.0') && (isMacOs() || isLinux())) {
       log.info('using native FSWatcher');
       this.backend = new FSWatcher(project);
     } else {
