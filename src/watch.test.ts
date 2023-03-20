@@ -1,10 +1,10 @@
 import { watch } from './watch';
+import fs from 'node:fs/promises';
 import { setTimeout } from 'node:timers/promises';
 import path from 'path';
 import { type Message } from 'roarr';
 import * as sinon from 'sinon';
 import { afterEach, beforeEach, expect, it } from 'vitest';
-import fs from 'node:fs/promises';
 
 const spyRoarr = () => {
   const { ROARR_LOG } = process.env;
@@ -32,8 +32,8 @@ const fixturesPath = path.resolve(__dirname, '../.fixtures');
 
 beforeEach(async () => {
   await fs.rm(fixturesPath, {
-    recursive: true,
     force: true,
+    recursive: true,
   });
 
   await fs.mkdir(fixturesPath);
@@ -42,8 +42,8 @@ beforeEach(async () => {
 
 afterEach(async () => {
   await fs.rm(fixturesPath, {
-    recursive: true,
     force: true,
+    recursive: true,
   });
 });
 
