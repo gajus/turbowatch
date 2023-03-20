@@ -57,7 +57,18 @@ export const watch = (
 
   const watcher = new Watcher(project);
 
+  let shuttingDown = false;
+
   const shutdown = async () => {
+    if (shuttingDown) {
+      return;
+    }
+
+    shuttingDown = true;
+
+    // eslint-disable-next-line promise/prefer-await-to-then
+    await watcher.close();
+
     clearInterval(indexingIntervalId);
 
     abortController.abort();
@@ -70,8 +81,13 @@ export const watch = (
       }
     }
 
-    // eslint-disable-next-line promise/prefer-await-to-then
-    await watcher.close();
+    for (const subscription of subscriptions) {
+      const { teardown } = subscription;
+
+      if (teardown) {
+        await teardown();
+      }
+    }
   };
 
   if (abortSignal) {
