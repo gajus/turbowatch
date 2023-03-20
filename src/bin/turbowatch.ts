@@ -5,7 +5,8 @@
 /* eslint-disable require-atomic-updates */
 
 import { Logger } from '../Logger';
-import { type TurbowatchController } from '../types';
+import { type TurbowatchConfiguration } from '../types';
+import { watch } from '../watch';
 import jiti from 'jiti';
 import { existsSync } from 'node:fs';
 import path from 'node:path';
@@ -67,10 +68,10 @@ const main = async () => {
   }
 
   for (const resolvedPath of resolvedScriptPaths) {
-    const userScript = jiti(__filename)(resolvedPath)
-      .default as Promise<TurbowatchController>;
+    const turbowatchConfiguration = jiti(__filename)(resolvedPath)
+      .default as TurbowatchConfiguration;
 
-    if (typeof userScript?.then !== 'function') {
+    if (typeof turbowatchConfiguration?.Watcher !== 'function') {
       console.error(
         'Expected user script to export an instance of TurbowatchController',
       );
@@ -80,7 +81,10 @@ const main = async () => {
       return;
     }
 
-    const turbowatchController = await userScript;
+    const turbowatchController = await watch({
+      cwd: path.dirname(resolvedPath),
+      ...turbowatchConfiguration,
+    });
 
     process.once('SIGINT', () => {
       log.warn('received SIGINT; gracefully terminating');

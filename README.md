@@ -9,9 +9,9 @@ Basic usage:
 ```bash
 npm install turbowatch
 cat > turbowatch.ts <<'EOD'
-import { watch } from 'turbowatch';
+import { defineConfig } from 'turbowatch';
 
-export default watch({
+export default defineConfig({
   project: __dirname,
   triggers: [
     {
@@ -62,6 +62,8 @@ Refer to recipes:
 
 ## API
 
+> **Note** `defineConfig` is used to export configuration for the consumption by `turbowatch` program. If you want to run Turbowatch programmatically, then use `watch`. The API of both methods is equivalent.
+
 Turbowatch [defaults](#recipes) are a good choice for most projects. However, Turbowatch has _many_ options that you should be familiar with for advance use cases.
 
 ```ts
@@ -70,7 +72,7 @@ import {
   type ChangeEvent,
 } from 'turbowatch';
 
-export default watch({
+void watch({
   // Debounces triggers by 1 second.
   // Most multi-file spanning changes are non-atomic. Therefore, it is typically desirable to
   // batch together information about multiple file changes that happened in short succession.
@@ -218,7 +220,7 @@ type Expression =
 ```ts
 import { watch } from 'turbowatch';
 
-export default watch({
+void watch({
   project: __dirname,
   triggers: [
     {
@@ -238,7 +240,7 @@ export default watch({
 ```ts
 import { watch } from 'turbowatch';
 
-export default watch({
+void watch({
   project: __dirname,
   triggers: [
     {
@@ -267,7 +269,7 @@ There is more than one way to watch `node_modules`. However, through trial and e
 ```ts
 import { watch } from 'turbowatch';
 
-export default watch({
+void watch({
   project: path.resolve(__dirname, '../..'),
   triggers: [
     {
@@ -309,7 +311,7 @@ import {
   buildTrigger,
 } from '@/turbowatch';
 
-export default watch({
+void watch({
   project: __dirname,
   triggers: [
     buildTrigger(),
@@ -543,7 +545,7 @@ Many tools provide built-in watch functionality, e.g. `tsc --watch`. However, th
 
 > **Note** There are some valid use cases for using native watch mode (e.g. `next dev`). However, even in those cases you should consider wrapping those operations in Turbowatch for consistency, e.g.
 > ```ts
-> export default watch({
+> void watch({
 >   project: __dirname,
 >   triggers: [
 >     {

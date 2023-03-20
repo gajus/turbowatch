@@ -4,11 +4,11 @@ import { Logger } from './Logger';
 import { subscribe } from './subscribe';
 import { testExpression } from './testExpression';
 import {
-  type Configuration,
-  type ConfigurationInput,
   type FileChangeEvent,
   type JsonObject,
   type Subscription,
+  type TurbowatchConfiguration,
+  type TurbowatchConfigurationInput,
   type TurbowatchController,
 } from './types';
 import { serializeError } from 'serialize-error';
@@ -19,14 +19,15 @@ const log = Logger.child({
 });
 
 export const watch = (
-  configurationInput: ConfigurationInput,
+  configurationInput: TurbowatchConfigurationInput,
 ): Promise<TurbowatchController> => {
   const {
+    cwd,
     project,
     triggers,
     debounce: userDebounce,
     Watcher,
-  }: Configuration = {
+  }: TurbowatchConfiguration = {
     // as far as I can tell, this is a bug in unicorn/no-unused-properties
     // https://github.com/sindresorhus/eslint-plugin-unicorn/issues/2051
     // eslint-disable-next-line unicorn/no-unused-properties
@@ -106,6 +107,7 @@ export const watch = (
     subscriptions.push(
       subscribe({
         abortSignal,
+        cwd,
         expression: trigger.expression,
         id: generateShortId(),
         initialRun: trigger.initialRun ?? true,

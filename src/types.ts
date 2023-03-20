@@ -114,6 +114,7 @@ type TriggerInput = {
 
 export type Trigger = {
   abortSignal?: AbortSignal;
+  cwd?: string;
   expression: Expression;
   id: string;
   initialRun: boolean;
@@ -131,15 +132,17 @@ export type WatcherConstructable = new (project: string) => FileWatchingBackend;
 /**
  * @property project absolute path to the directory to watch
  */
-export type ConfigurationInput = {
+export type TurbowatchConfigurationInput = {
   readonly Watcher?: WatcherConstructable;
+  readonly cwd?: string;
   readonly debounce?: Debounce;
   readonly project: string;
   readonly triggers: readonly TriggerInput[];
 };
 
-export type Configuration = {
+export type TurbowatchConfiguration = {
   readonly Watcher: WatcherConstructable;
+  readonly cwd?: string;
   readonly debounce: Debounce;
   readonly project: string;
   readonly triggers: readonly TriggerInput[];

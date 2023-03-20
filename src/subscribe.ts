@@ -149,6 +149,7 @@ export const subscribe = (trigger: Trigger): Subscription => {
           first: reportFirst,
           spawn: createSpawn(taskId, {
             abortSignal,
+            cwd: trigger.cwd,
             throttleOutput: trigger.throttleOutput,
           }),
           taskId,
