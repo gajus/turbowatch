@@ -3,15 +3,17 @@ ignoreRegExpList:
 language: en
 version: '0.2'
 words:
+  - allof
+  - anyof
   - gajus
   - idirname
   - imatch
+  - interruptible
   - jiti
+  - roarr
   - SIGINT
   - SIGTERM
   - turborepo
   - turbowatch
   - vitest
   - wholename
-  - roarr
-  - interruptible

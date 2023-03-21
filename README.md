@@ -88,9 +88,13 @@ void watch({
       // Expression match files based on name.
       // https://github.com/gajus/turbowatch#expressions
       expression: [
-        'anyof',
-        ['match', '*.ts', 'basename'],
-        ['match', '*.tsx', 'basename'],
+        'allof',
+        ['not', ['dirname', 'node_modules']],
+        [
+          'anyof',
+          ['match', '*.ts', 'basename'],
+          ['match', '*.tsx', 'basename'],
+        ]
       ],
       // Indicates whether the onChange routine should be triggered on script startup.
       // Defaults to false. Set it to false if you would like onChange routine to not run until the first changes are detected.
@@ -224,7 +228,11 @@ void watch({
   project: __dirname,
   triggers: [
     {
-      expression: ['match', '*.ts', 'basename'],
+      expression: [
+        'allof',
+        ['not', ['dirname', 'node_modules']],
+        ['match', '*.ts', 'basename'],
+      ],
       name: 'build',
       onChange: async ({ spawn }) => {
         await spawn`tsc`;
@@ -245,9 +253,13 @@ void watch({
   triggers: [
     {
       expression: [
-        'anyof',
-        ['match', '*.ts', 'basename'],
-        ['match', '*.graphql', 'basename'],
+        'allof',
+        ['not', ['dirname', 'node_modules']],
+        [
+          'anyof',
+          ['match', '*.ts', 'basename'],
+          ['match', '*.graphql', 'basename'],
+        ]
       ],
       // Because of this setting, Turbowatch will kill the processes that spawn starts
       // when it detects changes when it detects a change.
@@ -551,10 +563,7 @@ Many tools provide built-in watch functionality, e.g. `tsc --watch`. However, th
 >   project: __dirname,
 >   triggers: [
 >     {
->       expression: [
->         'anyof',
->         ['match', '*', 'basename'],
->       ],
+>       expression: ['dirname', __dirname],
 >       // Marking this routine as non-interruptible will ensure that
 >       // next dev is not restarted when file changes are detected.
 >       interruptible: false,
