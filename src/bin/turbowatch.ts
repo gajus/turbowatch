@@ -16,7 +16,7 @@ const log = Logger.child({
   namespace: 'turbowatch',
 });
 
-const resolvePath = (inputPath: string): string | null => {
+const findTurbowatchScript = (inputPath: string): string | null => {
   let resolvedPath: string | null = null;
 
   const providedPath = path.resolve(process.cwd(), inputPath);
@@ -55,7 +55,7 @@ const main = async () => {
   const resolvedScriptPaths: string[] = [];
 
   for (const scriptPath of scriptPaths) {
-    const resolvedPath = resolvePath(scriptPath);
+    const resolvedPath = findTurbowatchScript(scriptPath);
 
     if (!resolvedPath) {
       console.error('%s not found', scriptPath);
