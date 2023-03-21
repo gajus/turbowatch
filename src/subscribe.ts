@@ -46,7 +46,7 @@ export const subscribe = (trigger: Trigger): Subscription => {
 
     if (activeTask) {
       if (trigger.interruptible) {
-        log.warn('aborted task %s (%s)', trigger.name, activeTask.id);
+        log.warn('%s (%s): aborted task', trigger.name, activeTask.id);
 
         if (!activeTask.abortController) {
           throw new Error('Expected abort controller to be set');
@@ -57,13 +57,17 @@ export const subscribe = (trigger: Trigger): Subscription => {
         activeTask = null;
       } else {
         if (trigger.persistent) {
-          log.warn('ignoring event because the trigger is persistent');
+          log.warn(
+            '%s (%s): ignoring event because the trigger is persistent',
+            trigger.name,
+            activeTask.id,
+          );
 
           return undefined;
         }
 
         log.warn(
-          'waiting for %s (%s) task to complete',
+          '%s (%s): waiting for task to complete',
           trigger.name,
           activeTask.id,
         );
@@ -103,32 +107,36 @@ export const subscribe = (trigger: Trigger): Subscription => {
 
     fileChangeEventQueue = [];
 
+    const taskId = generateShortId();
+
     if (trigger.initialRun && currentFirst) {
-      log.trace('initial run...');
+      log.debug('%s (%s): initial run...', trigger.name, taskId);
     } else if (event.files.length > 10) {
-      log.trace(
+      log.debug(
         {
           files: event.files.slice(0, 10).map((file) => {
             return file.name;
           }),
         },
-        '%d files changed; showing first 10',
+        '%s (%s): %d files changed; showing first 10',
+        trigger.name,
+        taskId,
         event.files.length,
       );
     } else {
-      log.trace(
+      log.debug(
         {
           files: event.files.map((file) => {
             return file.name;
           }),
         },
-        '%d %s changed',
+        '%s (%s): %d %s changed',
+        trigger.name,
+        taskId,
         event.files.length,
         event.files.length === 1 ? 'file' : 'files',
       );
     }
-
-    const taskId = generateShortId();
 
     const taskPromise = retry(
       (attempt: number) => {
@@ -154,7 +162,13 @@ export const subscribe = (trigger: Trigger): Subscription => {
         ...trigger.retry,
         onFailedAttempt: ({ retriesLeft }) => {
           if (retriesLeft > 0) {
-            log.warn('retrying task %s (%s)...', trigger.name, taskId);
+            log.warn(
+              '%s (%s): retrying task %d/%d...',
+              trigger.name,
+              taskId,
+              trigger.retry.retries - retriesLeft,
+              trigger.retry.retries,
+            );
           }
         },
       },
@@ -162,14 +176,14 @@ export const subscribe = (trigger: Trigger): Subscription => {
       // eslint-disable-next-line promise/prefer-await-to-then
       .then(() => {
         if (taskId === activeTask?.id) {
-          log.trace('completed task %s (%s)', trigger.name, taskId);
+          log.debug('%s (%s): completed task', trigger.name, taskId);
 
           activeTask = null;
         }
       })
       // eslint-disable-next-line promise/prefer-await-to-then
       .catch(() => {
-        log.warn('task %s (%s) failed', trigger.name, taskId);
+        log.warn('%s (%s): task failed', trigger.name, taskId);
       });
 
     // eslint-disable-next-line require-atomic-updates
@@ -180,7 +194,7 @@ export const subscribe = (trigger: Trigger): Subscription => {
       queued: false,
     };
 
-    log.trace('started task %s (%s)', trigger.name, taskId);
+    log.debug('%s (%s): started task', trigger.name, taskId);
 
     return taskPromise;
   };

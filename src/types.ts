@@ -84,7 +84,7 @@ type Retry = {
   factor?: number;
   maxTimeout?: number;
   minTimeout?: number;
-  retries?: number;
+  retries: number;
 };
 
 type Debounce = {
