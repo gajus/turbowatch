@@ -69,6 +69,11 @@ export const createSpawn = (
 
     (async () => {
       for await (const chunk of processPromise.stdout) {
+        // TODO we might want to make this configurable (e.g. behind a debug flag), because these logs might provide valuable context when debugging shutdown logic.
+        if (abortSignal?.aborted) {
+          return;
+        }
+
         const message = prefixLines(chunk.toString().trimEnd(), taskId + ' > ');
 
         if (throttleOutput?.delay) {
@@ -84,6 +89,11 @@ export const createSpawn = (
 
     (async () => {
       for await (const chunk of processPromise.stderr) {
+        // TODO we might want to make this configurable (e.g. behind a debug flag), because these logs might provide valuable context when debugging shutdown logic.
+        if (abortSignal?.aborted) {
+          return;
+        }
+
         const message = prefixLines(chunk.toString().trimEnd(), taskId + ' > ');
 
         if (throttleOutput?.delay) {
