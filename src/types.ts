@@ -1,6 +1,7 @@
 // cspell:words idirname imatch iname wholename
 
 import { type FileWatchingBackend } from './backends/FileWatchingBackend';
+import { type Logger } from 'roarr';
 import { type ProcessOutput } from 'zx';
 
 /* eslint-disable @typescript-eslint/sort-type-union-intersection-members */
@@ -52,6 +53,7 @@ export type ChangeEvent = {
   attempt: number;
   files: readonly File[];
   first: boolean;
+  log: Logger;
   spawn: (
     pieces: TemplateStringsArray,
     ...args: any[]

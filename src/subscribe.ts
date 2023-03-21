@@ -147,6 +147,7 @@ export const subscribe = (trigger: Trigger): Subscription => {
             };
           }),
           first: reportFirst,
+          log,
           spawn: createSpawn(taskId, {
             abortSignal,
             cwd: trigger.cwd,
