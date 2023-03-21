@@ -43,14 +43,15 @@ Refer to recipes:
 
 ||Turbowatch|Nodemon|
 |---|---|---|
-|Node.js interface (scriptable)|✅|❌<sup>1</sup>|
-|Graceful termination (teardown)|✅|❌<sup>2</sup>|
-|Scriptable child processes (zx)|✅|❌|
+|[Node.js interface (scriptable)](#api)|✅|❌<sup>1</sup>|
+|[Graceful termination (teardown)](#gracefully-terminating-turbowatch)|✅|❌<sup>2</sup>|
+|[Scriptable child processes (zx)](#spawn)|✅|❌|
 |Retries|✅|❌|
 |Debounce|✅|❌|
 |Interruptible workflows|✅|❌|
 |Concurrent workflows|✅|❌|
-|Log grouping|✅|❌|
+|[Log grouping](#throttling-spawn-output)|✅|❌|
+|[Bring-your-own backend](#using-custom-file-watching-backend)|✅|❌|
 |Works with long-running processes|✅|✅|
 |Works with build utilities and REPLs|✅|✅|
 |Watch specific files or directories|✅|✅|
