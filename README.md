@@ -158,7 +158,16 @@ Turbowatch can be used to automate any sort of operations that need to happen in
 
 ## `spawn`
 
-The `spawn` function that is exposed by `ChangeEvent` is used to evaluate shell commands. Behind the scenes it uses [zx](https://github.com/google/zx). The reason Turbowatch abstracts `zx` is to enable auto-termination of child-processes when triggers are configured to be `interruptible`.
+Turbowatch exposes `spawn` function that is an instance of [zx](https://github.com/google/zx). Use it to evaluate shell commands:
+
+```ts
+async ({ spawn }: ChangeEvent) => {
+  await spawn`tsc`;
+  await spawn`tsc-alias`;
+},
+```
+
+The reason Turbowatch abstracts `zx` is to enable graceful termination of child-processes when triggers are configured to be `interruptible`.
 
 ## Expressions
 
@@ -490,7 +499,7 @@ api:dev: a1e4c6a7 > [18:48:38.227]  55ms debug @utilities #waitFor: Waiting for 
 
 In this example, `redis`, `api` and `worker` processes produce logs at almost the exact same time causing the log stream to switch between outputting from a different process every other line. This makes it hard to read the logs.
 
-By default, Turbowatch throttles log output to at most once a second, producing a lot more easier to follow log output:
+By default, Turbowatch throttles log output to at most once a second per task, producing a lot more easier to follow log output:
 
 ```yaml
 redis:dev: 973191cf > #5 sha256:7f65636102fd1f499092cb075baa95784488c0bbc3e0abff2a6d853109e4a948 4.19MB / 9.60MB 22.3s
@@ -514,8 +523,6 @@ By default, `turbowatch` will look for `turbowatch.ts` script in the current wor
 ```bash
 turbowatch ./foo.ts ./bar.ts
 ```
-
-> **Warning** Scripts executed using NPM and PNPM (issue [#2653](https://github.com/pnpm/pnpm/issues/2653#issuecomment-1476686711)) cannot be gracefully shutdown. If your scripts need to be gracefully terminated, then avoid wrapping them in NPM or PNPM scripts.
 
 ### Using custom file watching backend
 
