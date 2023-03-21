@@ -1,6 +1,5 @@
 #!/usr/bin/env node
 
-/* eslint-disable no-console */
 /* eslint-disable node/shebang */
 /* eslint-disable require-atomic-updates */
 
@@ -18,6 +17,7 @@ const log = Logger.child({
 
 // eslint-disable-next-line node/no-process-env
 if (process.env.ROARR_LOG !== 'true') {
+  // eslint-disable-next-line no-console
   console.warn(
     '[turbowatch] running turbowatch without logging enabled; set ROARR_LOG=true to enable logging. Install @roarr/cli to pretty-print logs.',
   );
@@ -80,7 +80,7 @@ const main = async () => {
       .default as TurbowatchConfiguration;
 
     if (typeof turbowatchConfiguration?.Watcher !== 'function') {
-      console.error(
+      log.error(
         'Expected user script to export an instance of TurbowatchController',
       );
 
