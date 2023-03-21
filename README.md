@@ -130,11 +130,11 @@ void watch({
 
 ## Motivation
 
-To abstract the complexity of orchestrating file watch operations.
+To abstract the complexity of orchestrating file watching operations.
 
 For context, we are using [Turborepo](https://turbo.build/). The reason this project came to be is because Turborepo does not have "watch" mode (issue [#986](https://github.com/vercel/turbo/issues/986)).
 
-At first, we attempted to use a combination of `tsc --watch`, `concurrently` and `Nodemon`, but started to run into things breaking left and right, e.g.
+At first, we attempted to use a combination of `tsc --watch`, `concurrently` and Nodemon, but started to run into things breaking left and right, e.g.
 
 * services restarting prematurely (before all the assets are built)
 * services failing to gracefully shutdown and then failing to start, e.g. because ports are in use
@@ -143,18 +143,20 @@ Furthermore, the setup for each workspace was repetitive and not straightforward
 
 In short, it quickly became clear that we need the ability to have more control over the orchestration of what/when needs to happen when files change.
 
-We started with a script. At first I added _debounce_. That improved things. Then I added _graceful termination_ logic, which mostly made everything work. We still had occasional failures due to out-of-order events, but adding _retry_ logic fixed that too... At the end, while we got everything to work, it took a lot of effort and it still was a collection of hacky scripts that are hard to maintain and debug.
+We started with a script. At first I added _debounce_. That improved things. Then I added _graceful termination_ logic, which mostly made everything work. We still had occasional failures due to out-of-order events, but adding _retry_ logic fixed that too... At the end, while we got everything to work, it took a lot of effort and it still was a collection of hacky scripts that are hard to maintain and debug, and that's how Turbowatch came to be –
 
-In the end, Turbowatch is a toolbox for orchestrating and debugging file watch operations based on everything we learned along the way.
+Turbowatch is a toolbox for orchestrating and debugging file watching operations based on everything we learned along the way.
 
 > **Note** If you are working on a very simple project, i.e. just one build step or just one watch operation, then **you don't need Turbowatch**. Turbowatch is designed for monorepos or otherwise complex workspaces where you have dozens or hundreds of build steps that depend on each other (e.g. building and re-building dependencies, building/starting/stopping Docker containers, populating data, sending notifications, etc).
+
+We also [shared these learnings](https://github.com/vercel/turbo/issues/986#issuecomment-1477360394) with Turborepo team in hopes that it will help to design an embedded file watching experience.
 
 ## Use Cases
 
 Turbowatch can be used to automate any sort of operations that need to happen in response to files changing, e.g.,
 
-* You can run (and automatically restart) long-running processes (like your Node.js application)
-* You can build assets (like Docker images)
+* You can run (and conditionally restart) long-running processes (like your Node.js application)
+* You can build assets (like TypeScript and Docker images)
 
 ## `spawn`
 
