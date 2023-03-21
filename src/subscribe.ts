@@ -21,12 +21,6 @@ export const subscribe = (trigger: Trigger): Subscription => {
   let fileChangeEventQueue: FileChangeEvent[] = [];
 
   const handleSubscriptionEvent = async () => {
-    if (trigger.abortSignal?.aborted) {
-      log.warn('ignoring event because Turbowatch is shutting down');
-
-      return undefined;
-    }
-
     let currentFirst = first;
 
     if (first) {

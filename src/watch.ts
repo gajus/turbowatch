@@ -145,6 +145,10 @@ export const watch = (
         );
 
         if (relevantEvents.length) {
+          if (abortSignal?.aborted) {
+            return;
+          }
+
           void subscription.trigger(relevantEvents);
         }
       }
