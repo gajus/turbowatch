@@ -16,6 +16,13 @@ const log = Logger.child({
   namespace: 'turbowatch',
 });
 
+// eslint-disable-next-line node/no-process-env
+if (process.env.ROARR_LOG !== 'true') {
+  console.warn(
+    '[turbowatch] running turbowatch without logging enabled; set ROARR_LOG=true to enable logging. Install @roarr/cli to pretty-print logs.',
+  );
+}
+
 const findTurbowatchScript = (inputPath: string): string | null => {
   let resolvedPath: string | null = null;
 
