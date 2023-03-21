@@ -55,6 +55,7 @@ it('[dirname] evaluates as true if a given file has a matching parent directory 
 it('[dirname] evaluates as false if a given file does not have a matching parent directory (bar)', () => {
   expect(testExpression(['dirname', 'bar'], '/foo/bar')).toBe(false);
   expect(testExpression(['dirname', '/bar'], '/foo/bar/baz')).toBe(false);
+  expect(testExpression(['dirname', 'foo'], '/.foo/bar')).toBe(false);
 });
 
 it('[idirname] evaluates as true if a given file has a matching parent directory (foo)', () => {
