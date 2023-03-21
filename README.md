@@ -550,14 +550,14 @@ ROARR_LOG=true turbowatch | roarr
 
 The biggest benefit of using Turbowatch is that it provides a single abstraction for all file watching operations. That is, you might get away with Nodemon, concurrently, `--watch`, etc. running in parallel, but using Turbowatch will introduce consistency to how you perform watch operations.
 
-### Why not use X --watch?
+### Why not use `X --watch`?
 
 Many tools provide built-in watch functionality, e.g. `tsc --watch`. However, there are couple of problems with relying on them:
 
 * Running many file watchers is inefficient and is probably draining your laptop's battery faster than you realize. Turbowatch uses a single server to watch all file changes.
-* Native tools do not allow to combine operations, e.g. If your build depends on `tsc` and `tsc-alias`, then you cannot combine them. Turbowatch allows you to chain arbitrary operations.
+* Native tools do not allow to combine operations, e.g. If your build depends on `tsc --watch` and `tsc-alias --watch`, then you cannot combine them. On the other hand, Turbowatch allows you to chain arbitrary operations.
 
-> **Note** There are some valid use cases for using native watch mode (e.g. `next dev`). However, even in those cases you should consider wrapping those operations in Turbowatch for consistency, e.g.
+> **Note** Turbowatch is not a replacement for services that implement Hot Module Replacement (HMR), e.g. Next.js. However, you should still wrap those operations in Turbowatch for consistency, e.g.
 > ```ts
 > void watch({
 >   project: __dirname,
@@ -571,6 +571,9 @@ Many tools provide built-in watch functionality, e.g. `tsc --watch`. However, th
 >       onChange: async ({ spawn }) => {
 >         await spawn`next dev`;
 >       },
+>       // Enabling this option modifies what Turbowatch logs and warns
+>       // you if your configuration is incompatible with persistent tasks.
+>       persistent: true,
 >     },
 >   ],
 > });
