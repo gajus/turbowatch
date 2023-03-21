@@ -1,13 +1,3 @@
-dictionaries:
-  - companies
-  - css
-  - en_us
-  - en-gb
-  - fullstack
-  - html
-  - lorem-ipsum
-  - sql
-  - typescript
 ignoreRegExpList:
   - /.*[0-9].*/
 language: en
@@ -23,3 +13,5 @@ words:
   - turbowatch
   - vitest
   - wholename
+  - roarr
+  - interruptible

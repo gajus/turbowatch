@@ -54,11 +54,12 @@
     "url": "https://github.com/gajus/turbowatch"
   },
   "scripts": {
-    "build": "rm -fr ./dist && tsc --noEmit false",
+    "build": "rm -fr ./dist && tsc --project tsconfig.build.json",
     "dev": "tsc --watch",
+    "lint": "npm run lint:tsc && npm run lint:eslint && npm run lint:cspell",
     "lint:cspell": "cspell './**/*.{ts,tsx}' --no-progress --gitignore",
     "lint:eslint": "eslint --color .",
-    "lint:tsc": "tsc --noEmit",
+    "lint:tsc": "tsc",
     "test:vitest": "vitest --passWithNoTests"
   },
   "types": "./dist/index.d.ts",
