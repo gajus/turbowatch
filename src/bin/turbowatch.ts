@@ -87,8 +87,32 @@ const main = async () => {
       ...turbowatchConfiguration,
     });
 
+    let terminating = false;
+
     process.once('SIGINT', () => {
+      if (terminating) {
+        log.warn('already terminating; ignoring SIGINT');
+
+        return;
+      }
+
+      terminating = true;
+
       log.warn('received SIGINT; gracefully terminating');
+
+      void turbowatchController.shutdown();
+    });
+
+    process.once('SIGTERM', () => {
+      if (terminating) {
+        log.warn('already terminating; ignoring SIGTERM');
+
+        return;
+      }
+
+      terminating = true;
+
+      log.warn('received SIGTERM; gracefully terminating');
 
       void turbowatchController.shutdown();
     });
