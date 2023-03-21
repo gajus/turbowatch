@@ -224,7 +224,7 @@ export const watch = (
         );
       }
 
-      log.info('Initial scan complete. Ready for changes');
+      log.info('ready for file changes');
 
       for (const subscription of subscriptions) {
         if (subscription.initialRun) {
