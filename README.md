@@ -345,6 +345,45 @@ void watch({
 
 Such abstraction helps to avoid errors that otherwise may occur due to duplicative code across workspaces.
 
+### Reducing unnecessary reloads
+
+Something that is important to consider when orchestrating file watching triggers is how to avoid unnecessary reloads. Consider if this was your "build" script:
+
+```bash
+rm -fr dist && tsc && tsc-alias
+```
+
+and let's assume that you are using an expression such as this one to detect when dependencies are updated:
+
+```ts
+[
+  'allof',
+  ['dirname', 'node_modules'],
+  ['dirname', 'dist'],
+  ['match', '*'],
+],
+```
+
+Running this script will produce at least 3 file change events:
+
+1. when `rm -fr dist` completes
+1. when `tsc` completes
+1. when `tsc-alias` completes
+
+What's even worse is that even if the output has not changed, you are still going to trigger file change events (because `dist` get replaced).
+
+To some degree, `debounce` setting helps with this. However, it will only help if there is no more than 1 second (by default) inbetween every command.
+
+One way to avoid this entirely is by using an intermediate directory to output files and swapping only the files that changed. Here is how we do it:
+
+```bash
+rm -fr .dist && tsc --project tsconfig.build.json && rsync -cr --delete .dist/ ./dist/ && rm -fr .dist
+```
+
+This "build" script will always produce at most 1 event, and won't produce any events if the outputs have not changed.
+
+This is not specific to Turbowatch, but something worth considering as you are designing your build pipeline.
+
 ### Retrying failing triggers
 
 Retries are configured by passing a `retry` property to the trigger configuration.
