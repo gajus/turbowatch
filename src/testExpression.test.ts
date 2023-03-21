@@ -45,17 +45,23 @@ it('[anyof] evaluates as true if any of the grouped expressions also evaluated a
 
 it('[dirname] evaluates as true if a given file has a matching parent directory (foo)', () => {
   expect(testExpression(['dirname', 'foo'], '/foo/bar')).toBe(true);
+  expect(testExpression(['dirname', 'bar'], '/foo/bar/baz')).toBe(true);
+  expect(testExpression(['dirname', 'bar/baz'], '/foo/bar/baz/qux')).toBe(true);
+  expect(testExpression(['dirname', '/foo/bar'], '/foo/bar/baz/qux')).toBe(
+    true,
+  );
 });
 
-it('[dirname] evaluates as true if a given file has a matching parent directory (bar)', () => {
+it('[dirname] evaluates as false if a given file does not have a matching parent directory (bar)', () => {
   expect(testExpression(['dirname', 'bar'], '/foo/bar')).toBe(false);
+  expect(testExpression(['dirname', '/bar'], '/foo/bar/baz')).toBe(false);
 });
 
 it('[idirname] evaluates as true if a given file has a matching parent directory (foo)', () => {
   expect(testExpression(['idirname', 'FOO'], '/foo/bar')).toBe(true);
 });
 
-it('[idirname] evaluates as true if a given file has a matching parent directory (bar)', () => {
+it('[idirname] evaluates as false if a given file does not have a matching parent directory (bar)', () => {
   expect(testExpression(['idirname', 'BAR'], '/foo/bar')).toBe(false);
 });
 
