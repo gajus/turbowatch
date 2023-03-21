@@ -344,7 +344,7 @@ type Retry = {
 
 > **Note** `SIGINT` is automatically handled if you are using `turbowatch` executable to evaluate your Turbowatch script. This examples shows how to programmatically gracefully shutdown Turbowatch if you choose not to use `turbowatch` program to evaluate your watch scripts.
 
-> **Warning** Unfortunately, many tools do not allow processes to gracefully terminate. There are open support issues for this in npm ([#4603](https://github.com/npm/npm/issues/4603)), pnpm ([#2653](https://github.com/pnpm/pnpm/issues/2653#issuecomment-1476686711)) and yarn ([#4667](https://github.com/yarnpkg/yarn/issues/4667)), but they haven't been addressed. Therefore, do not wrap your `turbowatch` script execution using these tools if you require processes to gracefully terminate. 
+> **Warning** Unfortunately, many tools do not allow processes to gracefully terminate. There are open support issues for this in npm ([#4603](https://github.com/npm/npm/issues/4603)), pnpm ([#2653](https://github.com/pnpm/pnpm/issues/2653#issuecomment-1476686711)) and yarn ([#4667](https://github.com/yarnpkg/yarn/issues/4667)), but they haven't been addressed. Therefore, do not wrap your `turbowatch` script execution using these tools if you require processes to gracefully terminate.
 
 `watch` returns an instance of `TurbowatchController`, which can be used to gracefully terminate the script:
 
