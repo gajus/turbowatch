@@ -28,6 +28,7 @@ export const testExpression = (expression: Expression, fileName: string) => {
       path.dirname(fileName),
       '**/' + expression[1] + '/**',
       {
+        dot: true,
         nocase: name === 'idirname',
       },
     );

@@ -43,6 +43,12 @@ it('[anyof] evaluates as true if any of the grouped expressions also evaluated a
   ).toBe(false);
 });
 
+it('[dirname] dot directory in subject does not break the pattern', () => {
+  expect(
+    testExpression(['dirname', 'node_modules'], '/node_modules/.dist/foo.js'),
+  ).toBe(true);
+});
+
 it('[dirname] evaluates as true if a given file has a matching parent directory (foo)', () => {
   expect(testExpression(['dirname', 'foo'], '/foo/bar')).toBe(true);
   expect(testExpression(['dirname', 'bar'], '/foo/bar/baz')).toBe(true);
