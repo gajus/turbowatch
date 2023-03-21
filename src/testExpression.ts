@@ -36,7 +36,7 @@ export const testExpression = (expression: Expression, fileName: string) => {
   if (name === 'match' || name === 'imatch') {
     const pattern = expression[1];
     const subject =
-      expression[2] === 'basename' ? path.basename(fileName) : fileName;
+      expression[2] === 'wholename' ? fileName : path.basename(fileName);
 
     return micromatch.isMatch(subject, pattern, {
       dot: true,

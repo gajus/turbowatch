@@ -17,6 +17,7 @@ export type Expression =
   | ['dirname' | 'idirname', string]
   // Evaluates as true if a glob matches against the basename of the file.
   // https://facebook.github.io/watchman/docs/expr/match.html
+  | ['match' | 'imatch', string]
   | ['match' | 'imatch', string, 'basename' | 'wholename']
   // Evaluates as true if the sub-expression evaluated as false, i.e. inverts the sub-expression.
   // https://facebook.github.io/watchman/docs/expr/not.html
