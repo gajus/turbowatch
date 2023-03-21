@@ -27,10 +27,10 @@ export const subscribe = (trigger: Trigger): Subscription => {
       return undefined;
     }
 
-    let reportFirst = first;
+    let currentFirst = first;
 
     if (first) {
-      reportFirst = true;
+      currentFirst = true;
       first = false;
     }
 
@@ -109,7 +109,7 @@ export const subscribe = (trigger: Trigger): Subscription => {
 
     fileChangeEventQueue = [];
 
-    if (trigger.initialRun && reportFirst) {
+    if (trigger.initialRun && currentFirst) {
       log.trace('initial run...');
     } else if (event.files.length > 10) {
       log.trace(
@@ -146,7 +146,7 @@ export const subscribe = (trigger: Trigger): Subscription => {
               name: file.name,
             };
           }),
-          first: reportFirst,
+          first: currentFirst,
           log,
           spawn: createSpawn(taskId, {
             abortSignal,
