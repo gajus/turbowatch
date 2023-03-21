@@ -519,12 +519,21 @@ turbowatch ./foo.ts ./bar.ts
 
 ### Using custom file watching backend
 
-By default, Turbowatch uses `fs.watch` on MacOS (Node.js v19.1+) and fallsback to [chokidar](https://github.com/paulmillr/chokidar) on other platforms. However, you can override this behaviour and even implement your own file change detection logic.
+Many of the existing file watching solutions come with tradeoffs, e.g. Watchman does not track symbolic links ([#105](https://github.com/facebook/watchman/issues/105#issuecomment-1469496330)), chokidar is failing to register file changes ([#1240](https://github.com/paulmillr/chokidar/issues/1240)), `fs.watch` behavior is platform specific, etc. For this reason, Turbowatch provides several backends to choose from and allows to bring-your-own backend by implementing `FileWatchingBackend` interface.
+
+By default, Turbowatch uses `fs.watch` on MacOS (Node.js v19.1+) and fallsback to [chokidar](https://github.com/paulmillr/chokidar) on other platforms.
 
 ```ts
 import {
   watch,
+  // Smart Watcher that detects the best available file-watching backend.
   TurboWatcher,
+  // fs.watch based file watcher.
+  FSWatcher,
+  // Chokidar based file watcher.
+  ChokidarWatcher,
+  // Interface that all file watchers must implement.
+  FileWatchingBackend,
 } from 'turbowatch';
 
 export default watch({
