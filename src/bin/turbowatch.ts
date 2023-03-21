@@ -65,7 +65,7 @@ const main = async () => {
     const resolvedPath = findTurbowatchScript(scriptPath);
 
     if (!resolvedPath) {
-      console.error('%s not found', scriptPath);
+      log.error('%s not found', scriptPath);
 
       process.exitCode = 1;
 

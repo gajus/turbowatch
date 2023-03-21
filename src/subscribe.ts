@@ -28,17 +28,17 @@ export const subscribe = (trigger: Trigger): Subscription => {
       first = false;
     }
 
-    let controller: AbortController | null = null;
+    let abortController: AbortController | null = null;
 
     if (trigger.interruptible) {
-      controller = new AbortController();
+      abortController = new AbortController();
     }
 
-    let abortSignal = controller?.signal;
+    let abortSignal = abortController?.signal;
 
     if (abortSignal && trigger.abortSignal) {
       trigger.abortSignal.addEventListener('abort', () => {
-        controller?.abort();
+        abortController?.abort();
       });
     } else if (trigger.abortSignal) {
       abortSignal = trigger.abortSignal;
@@ -174,7 +174,7 @@ export const subscribe = (trigger: Trigger): Subscription => {
 
     // eslint-disable-next-line require-atomic-updates
     activeTask = {
-      abortController: controller,
+      abortController,
       id: taskId,
       promise: taskPromise,
       queued: false,
