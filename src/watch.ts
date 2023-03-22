@@ -224,16 +224,23 @@ export const watch = (
         );
       }
 
-      log.info('ready for file changes');
+      log.info('triggering initial runs');
+
+      const initialRuns: Array<Promise<void>> = [];
 
       for (const subscription of subscriptions) {
         if (subscription.initialRun) {
-          void subscription.trigger([]);
+          initialRuns.push(subscription.trigger([]));
         }
       }
 
-      resolve({
-        shutdown,
+      // eslint-disable-next-line promise/prefer-await-to-then
+      void Promise.all(initialRuns).then(() => {
+        log.info('ready for file changes');
+
+        resolve({
+          shutdown,
+        });
       });
     });
   });
