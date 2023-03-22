@@ -2,6 +2,8 @@
 
 import { Logger } from './Logger';
 import { type Throttle } from './types';
+import chalk from 'chalk';
+import randomColor from 'randomcolor';
 import { throttle } from 'throttle-debounce';
 import { $ } from 'zx';
 
@@ -59,6 +61,8 @@ export const createSpawn = (
     },
   );
 
+  const colorText = chalk.hex(randomColor({ luminosity: 'dark' }));
+
   return async (pieces: TemplateStringsArray, ...args: any[]) => {
     $.cwd = cwd;
 
@@ -74,7 +78,10 @@ export const createSpawn = (
           return;
         }
 
-        const message = prefixLines(chunk.toString().trimEnd(), taskId + ' > ');
+        const message = prefixLines(
+          chunk.toString().trimEnd(),
+          colorText(taskId) + ' > ',
+        );
 
         if (throttleOutput?.delay) {
           stdoutBuffer.push(message);
@@ -94,7 +101,10 @@ export const createSpawn = (
           return;
         }
 
-        const message = prefixLines(chunk.toString().trimEnd(), taskId + ' > ');
+        const message = prefixLines(
+          chunk.toString().trimEnd(),
+          colorText(taskId) + ' > ',
+        );
 
         if (throttleOutput?.delay) {
           stderrBuffer.push(message);
