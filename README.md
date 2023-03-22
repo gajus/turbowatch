@@ -181,6 +181,7 @@ It is important that these tasks are marked as `persistent` to distinguish them 
 ||Persistent|Non-Persistent|
 |---|---|---|
 |Wait for `initialRun` to complete before starting to watch files|❌|✅|
+|Ignore `FileChangeEvent` if `{ interruptible: false }`|✅|❌|
 
 ## Expressions
 
