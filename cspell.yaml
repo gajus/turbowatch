@@ -6,7 +6,6 @@ words:
   - allof
   - anyof
   - gajus
-  - gajus
   - idirname
   - imatch
   - interruptible
