@@ -179,6 +179,7 @@ Your setup may include tasks that are not designed to exit, e.g. `next dev` (sta
 It is important that these tasks are marked as `persistent` to distinguish them from tasks that run to completion as otherwise 
 
 ||Persistent|Non-Persistent|
+|---|---|---|
 |Wait for `initialRun` to complete before starting to watch files|❌|✅|
 
 ## Expressions
