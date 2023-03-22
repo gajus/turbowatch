@@ -235,7 +235,7 @@ export const watch = (
       }
 
       // eslint-disable-next-line promise/prefer-await-to-then
-      void Promise.all(initialRuns).then(() => {
+      void Promise.allSettled(initialRuns).then(() => {
         for (const subscription of subscriptions) {
           if (subscription.initialRun && subscription.persistent) {
             void subscription.trigger([]);
