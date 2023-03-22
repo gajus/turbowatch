@@ -207,11 +207,20 @@ export const subscribe = (trigger: Trigger): Subscription => {
       if (trigger.onTeardown) {
         const taskId = generateShortId();
 
-        await trigger.onTeardown({
-          spawn: createSpawn(taskId, {
-            throttleOutput: trigger.throttleOutput,
-          }),
-        });
+        try {
+          await trigger.onTeardown({
+            spawn: createSpawn(taskId, {
+              throttleOutput: trigger.throttleOutput,
+            }),
+          });
+        } catch (error) {
+          log.error(
+            {
+              error,
+            },
+            'teardown produced an error',
+          );
+        }
       }
     },
     trigger: async (events: readonly FileChangeEvent[]) => {
