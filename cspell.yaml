@@ -6,10 +6,12 @@ words:
   - allof
   - anyof
   - gajus
+  - gajus
   - idirname
   - imatch
   - interruptible
   - jiti
+  - kuizinas
   - roarr
   - SIGINT
   - SIGTERM
