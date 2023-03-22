@@ -229,13 +229,19 @@ export const watch = (
       const initialRuns: Array<Promise<void>> = [];
 
       for (const subscription of subscriptions) {
-        if (subscription.initialRun) {
+        if (subscription.initialRun && !subscription.persistent) {
           initialRuns.push(subscription.trigger([]));
         }
       }
 
       // eslint-disable-next-line promise/prefer-await-to-then
       void Promise.all(initialRuns).then(() => {
+        for (const subscription of subscriptions) {
+          if (subscription.initialRun && subscription.persistent) {
+            void subscription.trigger([]);
+          }
+        }
+
         log.info('ready for file changes');
 
         resolve({

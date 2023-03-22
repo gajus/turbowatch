@@ -203,6 +203,7 @@ export const subscribe = (trigger: Trigger): Subscription => {
     activeTask,
     expression: trigger.expression,
     initialRun: trigger.initialRun,
+    persistent: trigger.persistent,
     teardown: async () => {
       if (trigger.onTeardown) {
         const taskId = generateShortId();

@@ -169,6 +169,7 @@ export type Subscription = {
   activeTask: ActiveTask | null;
   expression: Expression;
   initialRun: boolean;
+  persistent: boolean;
   teardown: () => Promise<void>;
   trigger: (events: readonly FileChangeEvent[]) => Promise<void>;
 };
