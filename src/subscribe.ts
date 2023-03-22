@@ -217,7 +217,16 @@ export const subscribe = (trigger: Trigger): Subscription => {
     trigger: async (events: readonly FileChangeEvent[]) => {
       fileChangeEventQueue.push(...events);
 
-      await handleSubscriptionEvent();
+      try {
+        await handleSubscriptionEvent();
+      } catch (error) {
+        log.error(
+          {
+            error,
+          },
+          'trigger produced an error',
+        );
+      }
     },
   };
 };
