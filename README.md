@@ -176,7 +176,7 @@ The reason Turbowatch abstracts `zx` is to enable graceful termination of child-
 
 Your setup may include tasks that are not designed to exit, e.g. `next dev` (starts Next.js in development mode).
 
-It is important that these tasks are marked as `persistent` to distinguish them from tasks that run to completion as otherwise 
+It is important that these tasks are marked as `persistent` to distinguish them from tasks that run to completion as that changes how Turbowatch treats them.
 
 ||Persistent|Non-Persistent|
 |---|---|---|
