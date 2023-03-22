@@ -172,6 +172,15 @@ async ({ spawn }: ChangeEvent) => {
 
 The reason Turbowatch abstracts `zx` is to enable graceful termination of child-processes when triggers are configured to be `interruptible`.
 
+## Persistent tasks
+
+Your setup may include tasks that are not designed to exit, e.g. `next dev` (starts Next.js in development mode).
+
+It is important that these tasks are marked as `persistent` to distinguish them from tasks that run to completion as otherwise 
+
+||Persistent|Non-Persistent|
+|Wait for `initialRun` to complete before starting to watch files|❌|✅|
+
 ## Expressions
 
 Expressions are used to match files. The most basic expression is `match` – it evaluates as true if a glob pattern matches the file, e.g.
