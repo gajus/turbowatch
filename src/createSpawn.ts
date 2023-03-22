@@ -66,59 +66,49 @@ export const createSpawn = (
   return async (pieces: TemplateStringsArray, ...args: any[]) => {
     $.cwd = cwd;
 
+    let onStdout: (chunk: Buffer) => void;
+    let onStderr: (chunk: Buffer) => void;
+
+    const formatChunk = (chunk: Buffer) => {
+      return prefixLines(chunk.toString().trimEnd(), colorText(taskId) + ' > ');
+    };
+
+    if (throttleOutput?.delay) {
+      onStdout = (chunk: Buffer) => {
+        stdoutBuffer.push(formatChunk(chunk));
+        output();
+      };
+
+      onStderr = (chunk: Buffer) => {
+        stderrBuffer.push(formatChunk(chunk));
+        output();
+      };
+    } else {
+      onStdout = (chunk: Buffer) => {
+        // eslint-disable-next-line no-console
+        console.log(formatChunk(chunk));
+      };
+
+      onStderr = (chunk: Buffer) => {
+        // eslint-disable-next-line no-console
+        console.error(formatChunk(chunk));
+      };
+    }
+
     // eslint-disable-next-line promise/prefer-await-to-then
     const processPromise = $(pieces, ...args)
       .nothrow()
       .quiet();
 
-    (async () => {
-      for await (const chunk of processPromise.stdout) {
-        // TODO we might want to make this configurable (e.g. behind a debug flag), because these logs might provide valuable context when debugging shutdown logic.
-        if (abortSignal?.aborted) {
-          return;
-        }
-
-        const message = prefixLines(
-          chunk.toString().trimEnd(),
-          colorText(taskId) + ' > ',
-        );
-
-        if (throttleOutput?.delay) {
-          stdoutBuffer.push(message);
-
-          output();
-        } else {
-          // eslint-disable-next-line no-console
-          console.log(message);
-        }
-      }
-    })();
-
-    (async () => {
-      for await (const chunk of processPromise.stderr) {
-        // TODO we might want to make this configurable (e.g. behind a debug flag), because these logs might provide valuable context when debugging shutdown logic.
-        if (abortSignal?.aborted) {
-          return;
-        }
-
-        const message = prefixLines(
-          chunk.toString().trimEnd(),
-          colorText(taskId) + ' > ',
-        );
-
-        if (throttleOutput?.delay) {
-          stderrBuffer.push(message);
-
-          output();
-        } else {
-          // eslint-disable-next-line no-console
-          console.error(message);
-        }
-      }
-    })();
+    processPromise.stdout.on('data', onStdout);
+    processPromise.stderr.on('data', onStderr);
 
     if (abortSignal) {
       const kill = () => {
+        // TODO we might want to make this configurable (e.g. behind a debug flag), because these logs might provide valuable context when debugging shutdown logic.
+        processPromise.stdout.off('data', onStdout);
+        processPromise.stderr.off('data', onStderr);
+
         processPromise.kill();
       };
 
