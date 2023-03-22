@@ -566,6 +566,12 @@ By default, `turbowatch` will look for `turbowatch.ts` script in the current wor
 turbowatch ./foo.ts ./bar.ts
 ```
 
+You can also provide a glob pattern:
+
+```bash
+turbowatch '**/turbowatch.ts'
+```
+
 ### Using custom file watching backend
 
 Many of the existing file watching solutions come with tradeoffs, e.g. Watchman does not track symbolic links ([#105](https://github.com/facebook/watchman/issues/105#issuecomment-1469496330)), chokidar is failing to register file changes ([#1240](https://github.com/paulmillr/chokidar/issues/1240)), `fs.watch` behavior is platform specific, etc. For this reason, Turbowatch provides several backends to choose from and allows to bring-your-own backend by implementing `FileWatchingBackend` interface.

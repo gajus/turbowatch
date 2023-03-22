@@ -5,6 +5,7 @@
 
 import { Logger } from '../Logger';
 import { type TurbowatchConfiguration } from '../types';
+import { glob } from 'glob';
 import jiti from 'jiti';
 import { existsSync } from 'node:fs';
 import path from 'node:path';
@@ -47,17 +48,28 @@ const main = async () => {
   const { watch } = jiti(__filename)('../watch');
 
   const argv = await yargs(hideBin(process.argv))
-    .command('$0 [scripts...]', 'Start Turbowatch', (commandYargs) => {
-      commandYargs.positional('scripts', {
+    .command('$0 [patterns...]', 'Start Turbowatch', (commandYargs) => {
+      commandYargs.positional('patterns', {
         array: true,
         default: ['turbowatch.ts'],
-        describe: 'Script with Turbowatch instructions.',
+        describe:
+          'Script with Turbowatch instructions. Can provide multiple. It can also be a glob pattern, e.g. **/turbowatch.ts',
         type: 'string',
       });
     })
     .parse();
 
-  const scriptPaths = argv.scripts as readonly string[];
+  const patterns = argv.patterns as readonly string[];
+
+  const scriptPaths: string[] = [];
+
+  for (const pattern of patterns) {
+    if (pattern.includes('*')) {
+      scriptPaths.push(...(await glob(pattern)));
+    } else {
+      scriptPaths.push(pattern);
+    }
+  }
 
   const resolvedScriptPaths: string[] = [];
 
