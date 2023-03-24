@@ -30,7 +30,7 @@ it(
       void abortController.abort();
     }, 50);
 
-    await spawn`sleep 10`;
+    await expect(spawn`sleep 10`).rejects.toThrowError();
   },
   TIMEOUT,
 );
@@ -48,7 +48,9 @@ it(
 
     const start = Date.now();
 
-    await spawn`( trap '' TERM; exec sleep 0.1 )`;
+    await expect(
+      spawn`( trap '' TERM; exec sleep 0.1 )`,
+    ).rejects.toThrowError();
 
     expect(Date.now() - start).toBeGreaterThan(100);
   },

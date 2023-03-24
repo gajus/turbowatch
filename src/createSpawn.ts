@@ -131,7 +131,7 @@ export const createSpawn = (
     }
 
     if (abortSignal?.aborted) {
-      return result;
+      throw new Error('Program was aborted.');
     }
 
     log.error('task %s exited with an error', taskId);
