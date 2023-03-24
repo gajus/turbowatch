@@ -226,27 +226,16 @@ export const watch = (
 
       log.info('triggering initial runs');
 
-      const initialRuns: Array<Promise<void>> = [];
-
       for (const subscription of subscriptions) {
         if (subscription.initialRun && !subscription.persistent) {
-          initialRuns.push(subscription.trigger([]));
+          void subscription.trigger([]);
         }
       }
 
-      // eslint-disable-next-line promise/prefer-await-to-then
-      void Promise.allSettled(initialRuns).then(() => {
-        for (const subscription of subscriptions) {
-          if (subscription.initialRun && subscription.persistent) {
-            void subscription.trigger([]);
-          }
-        }
+      log.info('ready for file changes');
 
-        log.info('ready for file changes');
-
-        resolve({
-          shutdown,
-        });
+      resolve({
+        shutdown,
       });
     });
   });

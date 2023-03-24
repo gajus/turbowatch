@@ -108,3 +108,29 @@ it('does not log every file change', async () => {
 
   await shutdown();
 });
+
+it('waits for the initial run to complete (non-persistent)', async () => {
+  const onChange = sinon.stub().resolves(setTimeout(100));
+
+  const startTime = Date.now();
+
+  const { shutdown } = await watch({
+    debounce: {
+      wait: 100,
+    },
+    project: fixturesPath,
+    triggers: [
+      {
+        expression: ['match', 'foo', 'basename'],
+        name: 'foo',
+        onChange,
+      },
+    ],
+  });
+
+  expect(Date.now() - startTime).toBeGreaterThan(100);
+
+  expect(onChange.called).toBe(true);
+
+  await shutdown();
+});
