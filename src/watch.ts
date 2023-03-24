@@ -227,7 +227,7 @@ export const watch = (
       log.info('triggering initial runs');
 
       for (const subscription of subscriptions) {
-        if (subscription.initialRun && !subscription.persistent) {
+        if (subscription.initialRun) {
           void subscription.trigger([]);
         }
       }
