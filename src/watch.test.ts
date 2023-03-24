@@ -108,3 +108,49 @@ it('does not log every file change', async () => {
 
   await shutdown();
 });
+
+it('executes the initial run (persistent)', async () => {
+  const onChange = sinon.stub();
+
+  const { shutdown } = await watch({
+    debounce: {
+      wait: 100,
+    },
+    project: fixturesPath,
+    triggers: [
+      {
+        expression: ['match', 'foo', 'basename'],
+        name: 'foo',
+        onChange,
+        persistent: true,
+      },
+    ],
+  });
+
+  expect(onChange.called).toBe(true);
+
+  await shutdown();
+});
+
+it('executes the initial run (non-persistent)', async () => {
+  const onChange = sinon.stub();
+
+  const { shutdown } = await watch({
+    debounce: {
+      wait: 100,
+    },
+    project: fixturesPath,
+    triggers: [
+      {
+        expression: ['match', 'foo', 'basename'],
+        name: 'foo',
+        onChange,
+        persistent: false,
+      },
+    ],
+  });
+
+  expect(onChange.called).toBe(true);
+
+  await shutdown();
+});
