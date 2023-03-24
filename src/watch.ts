@@ -104,18 +104,25 @@ export const watch = (
   }
 
   for (const trigger of triggers) {
+    const initialRun = trigger.initialRun ?? true;
+    const persistent = trigger.persistent ?? false;
+
+    if (persistent && !initialRun) {
+      throw new Error('Persistent triggers must have initialRun set to true.');
+    }
+
     subscriptions.push(
       subscribe({
         abortSignal,
         cwd,
         expression: trigger.expression,
         id: generateShortId(),
-        initialRun: trigger.initialRun ?? true,
+        initialRun,
         interruptible: trigger.interruptible ?? true,
         name: trigger.name,
         onChange: trigger.onChange,
         onTeardown: trigger.onTeardown,
-        persistent: trigger.persistent ?? false,
+        persistent,
         retry: trigger.retry ?? {
           retries: 0,
         },
