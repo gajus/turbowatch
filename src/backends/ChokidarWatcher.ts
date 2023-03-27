@@ -14,14 +14,14 @@ export class ChokidarWatcher extends FileWatchingBackend {
     });
 
     this.chokidar.on('ready', () => {
-      this.emit('ready');
+      this.emitReady();
 
       this.chokidar.on('all', (event, filename) => {
         if (event === 'addDir') {
           return;
         }
 
-        this.emit('change', { filename });
+        this.emitChange({ filename });
       });
     });
   }
