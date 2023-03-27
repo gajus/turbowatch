@@ -4,7 +4,10 @@
 /* eslint-disable require-atomic-updates */
 
 import { Logger } from '../Logger';
-import { type TurbowatchConfiguration } from '../types';
+import {
+  type TurbowatchConfiguration,
+  type TurbowatchController,
+} from '../types';
 import { glob } from 'glob';
 import jiti from 'jiti';
 import { existsSync } from 'node:fs';
@@ -45,6 +48,43 @@ const findTurbowatchScript = (inputPath: string): string | null => {
 };
 
 const main = async () => {
+  // eslint-disable-next-line prefer-const
+  let turbowatchController: TurbowatchController;
+
+  let terminating = false;
+
+  process.once('SIGINT', () => {
+    if (terminating) {
+      log.warn('already terminating; ignoring SIGINT');
+
+      return;
+    }
+
+    terminating = true;
+
+    log.warn('received SIGINT; gracefully terminating');
+
+    if (turbowatchController) {
+      void turbowatchController.shutdown();
+    }
+  });
+
+  process.once('SIGTERM', () => {
+    if (terminating) {
+      log.warn('already terminating; ignoring SIGTERM');
+
+      return;
+    }
+
+    terminating = true;
+
+    log.warn('received SIGTERM; gracefully terminating');
+
+    if (turbowatchController) {
+      void turbowatchController.shutdown();
+    }
+  });
+
   const { watch } = jiti(__filename)('../watch');
 
   const argv = await yargs(hideBin(process.argv))
@@ -101,40 +141,16 @@ const main = async () => {
       return;
     }
 
-    const turbowatchController = await watch({
+    turbowatchController = await watch({
       cwd: path.dirname(resolvedPath),
       ...turbowatchConfiguration,
     });
 
-    let terminating = false;
+    if (terminating) {
+      log.warn('terminating');
 
-    process.once('SIGINT', () => {
-      if (terminating) {
-        log.warn('already terminating; ignoring SIGINT');
-
-        return;
-      }
-
-      terminating = true;
-
-      log.warn('received SIGINT; gracefully terminating');
-
-      void turbowatchController.shutdown();
-    });
-
-    process.once('SIGTERM', () => {
-      if (terminating) {
-        log.warn('already terminating; ignoring SIGTERM');
-
-        return;
-      }
-
-      terminating = true;
-
-      log.warn('received SIGTERM; gracefully terminating');
-
-      void turbowatchController.shutdown();
-    });
+      await turbowatchController.shutdown();
+    }
   }
 };
 
