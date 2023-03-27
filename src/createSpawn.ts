@@ -1,5 +1,6 @@
 // cspell:words nothrow
 
+import { findNearestDirectory } from './findNearestDirectory';
 import { Logger } from './Logger';
 import { type Throttle } from './types';
 import chalk from 'chalk';
@@ -64,7 +65,11 @@ export const createSpawn = (
   const colorText = chalk.hex(randomColor({ luminosity: 'dark' }));
 
   return async (pieces: TemplateStringsArray, ...args: any[]) => {
+    const binPath = (await findNearestDirectory('node_modules', cwd)) + '/.bin';
+
     $.cwd = cwd;
+
+    $.prefix = `set -euo pipefail; export PATH="${binPath}:$PATH";`;
 
     let onStdout: (chunk: Buffer) => void;
     let onStderr: (chunk: Buffer) => void;

@@ -11,6 +11,7 @@ words:
   - interruptible
   - jiti
   - kuizinas
+  - pipefail
   - randomcolor
   - roarr
   - SIGINT

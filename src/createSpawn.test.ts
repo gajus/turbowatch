@@ -9,6 +9,14 @@ it('returns outputs', async () => {
   expect(String(result?.stdout)).toEqual('Hello, World!\n');
 });
 
+it('injects path to node_modules/.bin', async () => {
+  const spawn = createSpawn('foo');
+
+  const result = await spawn`echo $PATH`;
+
+  expect(String(result?.stdout)).toMatch(/node_modules\/\.bin/u);
+});
+
 it('rejects if process produces an error', async () => {
   const spawn = createSpawn('foo');
 
