@@ -45,16 +45,6 @@ export const watch = (
 
   const abortSignal = abortController.signal;
 
-  let discoveredFileCount = 0;
-
-  const indexingIntervalId = setInterval(() => {
-    log.trace(
-      'indexed %d %s...',
-      discoveredFileCount,
-      discoveredFileCount === 1 ? 'file' : 'files',
-    );
-  }, 5_000);
-
   const subscriptions: Subscription[] = [];
 
   const watcher = new Watcher(project);
@@ -68,10 +58,7 @@ export const watch = (
 
     terminating = true;
 
-    // eslint-disable-next-line promise/prefer-await-to-then
     await watcher.close();
-
-    clearInterval(indexingIntervalId);
 
     abortController.abort();
 
@@ -168,22 +155,18 @@ export const watch = (
 
   let ready = false;
 
-  const discoveredFiles: string[] = [];
-
   watcher.on('change', ({ filename }) => {
-    if (ready) {
-      queuedFileChangeEvents.push({
-        filename,
-      });
+    if (!ready) {
+      log.warn('ignoring change event before ready');
 
-      evaluateSubscribers();
-    } else {
-      if (discoveredFiles.length < 10) {
-        discoveredFiles.push(filename);
-      }
-
-      discoveredFileCount++;
+      return;
     }
+
+    queuedFileChangeEvents.push({
+      filename,
+    });
+
+    evaluateSubscribers();
   });
 
   return new Promise((resolve, reject) => {
@@ -204,33 +187,6 @@ export const watch = (
 
     watcher.on('ready', () => {
       ready = true;
-
-      clearInterval(indexingIntervalId);
-
-      if (discoveredFiles.length > 10) {
-        log.trace(
-          {
-            files: discoveredFiles.slice(0, 10).map((file) => {
-              return file;
-            }),
-          },
-          'discovered %d files in %s; showing first 10',
-          discoveredFileCount,
-          project,
-        );
-      } else if (discoveredFiles.length > 0) {
-        log.trace(
-          {
-            files: discoveredFiles.map((file) => {
-              return file;
-            }),
-          },
-          'discovered %d %s in %s',
-          discoveredFileCount,
-          discoveredFiles.length === 1 ? 'file' : 'files',
-          project,
-        );
-      }
 
       if (!terminating) {
         log.info('triggering initial runs');
