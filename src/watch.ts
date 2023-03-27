@@ -59,14 +59,14 @@ export const watch = (
 
   const watcher = new Watcher(project);
 
-  let shuttingDown = false;
+  let terminating = false;
 
   const shutdown = async () => {
-    if (shuttingDown) {
+    if (terminating) {
       return;
     }
 
-    shuttingDown = true;
+    terminating = true;
 
     // eslint-disable-next-line promise/prefer-await-to-then
     await watcher.close();
@@ -232,15 +232,17 @@ export const watch = (
         );
       }
 
-      log.info('triggering initial runs');
+      if (!terminating) {
+        log.info('triggering initial runs');
 
-      for (const subscription of subscriptions) {
-        if (subscription.initialRun) {
-          void subscription.trigger([]);
+        for (const subscription of subscriptions) {
+          if (subscription.initialRun) {
+            void subscription.trigger([]);
+          }
         }
-      }
 
-      log.info('ready for file changes');
+        log.info('ready for file changes');
+      }
 
       resolve({
         shutdown,
