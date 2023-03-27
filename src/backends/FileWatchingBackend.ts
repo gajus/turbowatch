@@ -3,10 +3,11 @@
 
 import { type FileChangeEvent } from '../types';
 import { EventEmitter } from 'node:events';
+import path from 'node:path';
 
 interface BackendEventEmitter {
-  on(event: 'ready', listener: () => void): this;
-  on(event: 'change', listener: ({ filename }: FileChangeEvent) => void): this;
+  on(name: 'ready', listener: () => void): this;
+  on(name: 'change', listener: ({ filename }: FileChangeEvent) => void): this;
 }
 
 export abstract class FileWatchingBackend
@@ -18,4 +19,18 @@ export abstract class FileWatchingBackend
   }
 
   public abstract close(): Promise<void>;
+
+  protected emitReady(): void {
+    this.emit('ready');
+  }
+
+  protected emitChange(event: FileChangeEvent): void {
+    if (!path.isAbsolute(event.filename)) {
+      throw new Error('Watchers must emit absolute paths');
+    }
+
+    this.emit('change', {
+      filename: event.filename,
+    });
+  }
 }

@@ -11,6 +11,7 @@ import {
   type TurbowatchConfigurationInput,
   type TurbowatchController,
 } from './types';
+import path from 'node:path';
 import { serializeError } from 'serialize-error';
 import { debounce } from 'throttle-debounce';
 
@@ -146,7 +147,7 @@ export const watch = (
           (fileChangeEvent) => {
             return testExpression(
               subscription.expression,
-              fileChangeEvent.filename,
+              path.relative(project, fileChangeEvent.filename),
             );
           },
         );

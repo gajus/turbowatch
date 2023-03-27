@@ -5,6 +5,10 @@ import micromatch from 'micromatch';
 import path from 'node:path';
 
 export const testExpression = (expression: Expression, fileName: string) => {
+  if (path.isAbsolute(fileName)) {
+    throw new Error('File name must be relative');
+  }
+
   const name = expression[0];
 
   if (name === 'allof') {
