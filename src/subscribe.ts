@@ -213,6 +213,12 @@ export const subscribe = (trigger: Trigger): Subscription => {
     initialRun: trigger.initialRun,
     persistent: trigger.persistent,
     teardown: async () => {
+      if (teardownInitiated) {
+        log.warn('teardown already initiated');
+
+        return;
+      }
+
       teardownInitiated = true;
 
       if (trigger.onTeardown) {

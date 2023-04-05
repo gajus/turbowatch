@@ -74,6 +74,25 @@ it('skips onChange if teardown is initiated', async () => {
   expect(onChangeExpectation.callCount).toBe(1);
 });
 
+it('initiates teardown at most once', async () => {
+  const trigger = {
+    ...defaultTrigger,
+  } as Trigger;
+
+  const triggerMock = sinon.mock(trigger);
+
+  const onTeardownExpectation = triggerMock.expects('onTeardown').atLeast(1);
+
+  const subscription = subscribe(trigger);
+
+  subscription.teardown();
+  subscription.teardown();
+
+  await wait(300);
+
+  expect(onTeardownExpectation.callCount).toBe(1);
+});
+
 it('swallow onChange errors', async () => {
   const trigger = {
     ...defaultTrigger,
