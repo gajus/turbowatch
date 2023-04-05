@@ -14,6 +14,8 @@ const log = Logger.child({
 });
 
 export const subscribe = (trigger: Trigger): Subscription => {
+  let teardownInitiated = false;
+
   let activeTask: ActiveTask | null = null;
 
   let first = true;
@@ -84,6 +86,12 @@ export const subscribe = (trigger: Trigger): Subscription => {
           // nothing to do
         }
       }
+    }
+
+    if (teardownInitiated) {
+      log.warn('teardown already initiated');
+
+      return undefined;
     }
 
     const affectedPaths: string[] = [];
@@ -205,6 +213,8 @@ export const subscribe = (trigger: Trigger): Subscription => {
     initialRun: trigger.initialRun,
     persistent: trigger.persistent,
     teardown: async () => {
+      teardownInitiated = true;
+
       if (trigger.onTeardown) {
         const taskId = generateShortId();
 

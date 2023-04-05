@@ -34,17 +34,44 @@ it('evaluates onChange', async () => {
     ...defaultTrigger,
   } as Trigger;
 
-  const subscriptionMock = sinon.mock(trigger);
+  const triggerMock = sinon.mock(trigger);
 
-  const onChange = subscriptionMock.expects('onChange').once().resolves(null);
+  const onChangeExpectation = triggerMock
+    .expects('onChange')
+    .once()
+    .resolves(null);
 
   const subscription = subscribe(trigger);
 
   subscription.trigger([]);
 
-  expect(subscriptionMock.verify());
+  expect(triggerMock.verify());
 
-  expect(onChange.args[0][0].taskId).toMatch(/^[a-z\d]{8}$/u);
+  expect(onChangeExpectation.args[0][0].taskId).toMatch(/^[a-z\d]{8}$/u);
+});
+
+it('skips onChange if teardown is initiated', async () => {
+  const trigger = {
+    ...defaultTrigger,
+  } as Trigger;
+
+  const triggerMock = sinon.mock(trigger);
+
+  const onChangeExpectation = triggerMock.expects('onChange').atLeast(1);
+
+  onChangeExpectation.onFirstCall().resolves(wait(100));
+
+  onChangeExpectation.onSecondCall().resolves(null);
+
+  const subscription = subscribe(trigger);
+
+  subscription.trigger([{ filename: 'foo' }]);
+  subscription.teardown();
+  subscription.trigger([{ filename: 'bar' }]);
+
+  await wait(300);
+
+  expect(onChangeExpectation.callCount).toBe(1);
 });
 
 it('swallow onChange errors', async () => {
