@@ -620,6 +620,18 @@ Use [@roarr/cli](https://github.com/gajus/roarr-cli) to pretty-print logs.
 ROARR_LOG=true turbowatch | roarr
 ```
 
+## Experiments
+
+These are features that are available behind feature flags (`TURBOWATCH_EXPERIMENTAL_*`).
+
+They are released to gather community feedback and may change at any point in future.
+
+### File hashing
+
+Hashes files and uses file hash comparison to determine if files have changed.
+
+To enable this behavior export `TURBOWATCH_EXPERIMENTAL_FILE_HASH=true` environment variable.
+
 ## Alternatives
 
 The biggest benefit of using Turbowatch is that it provides a single abstraction for all file watching operations. That is, you might get away with Nodemon, concurrently, `--watch`, etc. running in parallel, but using Turbowatch will introduce consistency to how you perform watch operations.

@@ -153,6 +153,7 @@ export type TurbowatchConfiguration = {
 
 export type FileChangeEvent = {
   filename: string;
+  hash?: string | null;
 };
 
 /**

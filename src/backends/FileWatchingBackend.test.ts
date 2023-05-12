@@ -64,9 +64,11 @@ for (const { Watcher, name } of backends) {
     await setTimeout(100);
 
     expect(
-      onChange.calledWith({
-        filename: path.join(fixturesPath, 'foo'),
-      }),
+      onChange.calledWith(
+        sinon.match({
+          filename: path.join(fixturesPath, 'foo'),
+        }),
+      ),
     ).toBe(true);
 
     await watcher.close();
@@ -125,9 +127,11 @@ for (const { Watcher, name } of backends) {
     await setTimeout(100);
 
     expect(
-      onChange.calledWith({
-        filename: path.join(fixturesPath, 'foo', 'bar'),
-      }),
+      onChange.calledWith(
+        sinon.match({
+          filename: path.join(fixturesPath, 'foo', 'bar'),
+        }),
+      ),
     ).toBe(true);
 
     await watcher.close();
@@ -158,9 +162,11 @@ for (const { Watcher, name } of backends) {
     await setTimeout(100);
 
     expect(
-      onChange.calledWith({
-        filename: path.join(fixturesPath, 'foo', 'bar'),
-      }),
+      onChange.calledWith(
+        sinon.match({
+          filename: path.join(fixturesPath, 'foo', 'bar'),
+        }),
+      ),
     ).toBe(true);
 
     await watcher.close();
@@ -191,9 +197,11 @@ for (const { Watcher, name } of backends) {
     await setTimeout(100);
 
     expect(
-      onChange.calledWith({
-        filename: path.join(fixturesPath, 'foo', 'bar', 'baz'),
-      }),
+      onChange.calledWith(
+        sinon.match({
+          filename: path.join(fixturesPath, 'foo', 'bar', 'baz'),
+        }),
+      ),
     ).toBe(true);
 
     // TODO investigate why this is failing in GitHub CI

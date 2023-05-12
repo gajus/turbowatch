@@ -23,6 +23,8 @@ const log = Logger.child({
 export const watch = (
   configurationInput: TurbowatchConfigurationInput,
 ): Promise<TurbowatchController> => {
+  const fileHashMap: Record<string, string> = {};
+
   const {
     cwd,
     project,
@@ -129,11 +131,33 @@ export const watch = (
         queuedFileChangeEvents,
       );
 
+      const filesWithUnchangedHash: string[] = [];
+
+      for (const fileChangeEvent of currentFileChangeEvents) {
+        const { filename, hash } = fileChangeEvent;
+
+        if (!hash) {
+          continue;
+        }
+
+        const previousHash = fileHashMap[filename];
+
+        if (previousHash === hash) {
+          filesWithUnchangedHash.push(filename);
+        } else {
+          fileHashMap[filename] = hash;
+        }
+      }
+
       queuedFileChangeEvents = [];
 
       for (const subscription of subscriptions) {
         const relevantEvents = currentFileChangeEvents.filter(
           (fileChangeEvent) => {
+            if (filesWithUnchangedHash.includes(fileChangeEvent.filename)) {
+              return false;
+            }
+
             return testExpression(
               subscription.expression,
               path.relative(project, fileChangeEvent.filename),
@@ -157,16 +181,14 @@ export const watch = (
 
   let ready = false;
 
-  watcher.on('change', ({ filename }) => {
+  watcher.on('change', (event) => {
     if (!ready) {
       log.warn('ignoring change event before ready');
 
       return;
     }
 
-    queuedFileChangeEvents.push({
-      filename,
-    });
+    queuedFileChangeEvents.push(event);
 
     evaluateSubscribers();
   });
