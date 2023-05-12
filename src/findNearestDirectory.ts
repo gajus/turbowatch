@@ -1,6 +1,10 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 
+/**
+ * Iterates up the directory tree from the given path until it finds a directory
+ * containing the given file.
+ */
 export const findNearestDirectory = async (
   fileName: string,
   startPath: string,
