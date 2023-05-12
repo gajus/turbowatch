@@ -87,7 +87,7 @@ type Retry = {
   retries: number;
 };
 
-type Debounce = {
+export type Debounce = {
   wait: number;
 };
 
