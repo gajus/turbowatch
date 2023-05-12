@@ -1,4 +1,5 @@
 import { TurboWatcher } from './backends/TurboWatcher';
+import { deduplicateFileChangeEvents } from './deduplicateFileChangeEvents';
 import { generateShortId } from './generateShortId';
 import { Logger } from './Logger';
 import { subscribe } from './subscribe';
@@ -124,8 +125,9 @@ export const watch = (
   const evaluateSubscribers = debounce(
     userDebounce.wait,
     () => {
-      const currentFileChangeEvents =
-        queuedFileChangeEvents as readonly FileChangeEvent[];
+      const currentFileChangeEvents = deduplicateFileChangeEvents(
+        queuedFileChangeEvents,
+      );
 
       queuedFileChangeEvents = [];
 
