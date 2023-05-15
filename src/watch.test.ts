@@ -106,6 +106,37 @@ it('ignores file change events if the file hash is the same', async () => {
   await shutdown();
 });
 
+// While desirable, at the moment this is not possible to implement.
+// Implementing this would require to index all files when the watch starts.
+it.skip('ignores file change events if the file hash is the same; file existed before watch started', async () => {
+  const onChange = sinon.stub();
+
+  await fs.writeFile(path.join(fixturesPath, 'foo'), '');
+
+  const { shutdown } = await watch({
+    debounce: {
+      wait: 100,
+    },
+    project: fixturesPath,
+    triggers: [
+      {
+        expression: ['match', 'foo', 'basename'],
+        initialRun: false,
+        name: 'foo',
+        onChange,
+      },
+    ],
+  });
+
+  await fs.writeFile(path.join(fixturesPath, 'foo'), '');
+
+  await setTimeout(1_000);
+
+  expect(onChange.callCount).toBe(0);
+
+  await shutdown();
+});
+
 // https://github.com/gajus/turbowatch/issues/17
 it('does not log every file change', async () => {
   const onChange = sinon.stub();
