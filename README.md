@@ -423,7 +423,6 @@ type Retry = {
 
 ```ts
 const { shutdown } = await watch({
-  abortSignal: abortController.signal,
   project: __dirname,
   triggers: [
     {
@@ -444,6 +443,31 @@ process.once('SIGINT', () => {
 ```
 
 Invoking `shutdown` will propagate an abort signal to all `onChange` handlers. The processes that were initiated using [`spawn`](#spawn) will receive `SIGTERM` signal.
+
+### Gracefully terminating Turbowatch using an `AbortController`
+
+In addition to being to Turbowatch using the `shutdown` routine, Turbowatch instance can be shutdown using an `AbortController`. The main difference is that `shutdown` can be awaited to know when the shutdown routine has run to completion.
+
+```ts
+const abortController = new AbortController();
+
+void watch({
+  abortController,
+  project: __dirname,
+  triggers: [
+    {
+      name: 'test',
+      expression: ['match', '*', 'basename'],
+      onChange: async ({ spawn }) => {
+        // `sleep 60` will receive `SIGTERM` as soon as `shutdown()` is called.
+        await spawn`sleep 60`;
+      },
+    }
+  ],
+});
+
+void abortController.abort();
+```
 
 ### Handling the `AbortSignal`
 
@@ -513,7 +537,7 @@ export default watch({
 import { watch } from 'turbowatch';
 
 export default watch({
-  abortSignal: abortController.signal,
+  abortController,
   project: __dirname,
   triggers: [
     {

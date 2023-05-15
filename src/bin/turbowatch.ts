@@ -5,7 +5,7 @@
 
 import { Logger } from '../Logger';
 import {
-  type TurbowatchConfiguration,
+  type TurbowatchConfigurationInput,
   type TurbowatchController,
 } from '../types';
 import { glob } from 'glob';
@@ -48,8 +48,7 @@ const findTurbowatchScript = (inputPath: string): string | null => {
 };
 
 const main = async () => {
-  // eslint-disable-next-line prefer-const
-  let turbowatchController: TurbowatchController;
+  const abortController = new AbortController();
 
   let terminating = false;
 
@@ -64,9 +63,7 @@ const main = async () => {
 
     log.warn('received SIGINT; gracefully terminating');
 
-    if (turbowatchController) {
-      void turbowatchController.shutdown();
-    }
+    abortController.abort();
   });
 
   process.once('SIGTERM', () => {
@@ -80,12 +77,16 @@ const main = async () => {
 
     log.warn('received SIGTERM; gracefully terminating');
 
-    if (turbowatchController) {
-      void turbowatchController.shutdown();
-    }
+    abortController.abort();
   });
 
-  const { watch } = jiti(__filename)('../watch');
+  const {
+    watch,
+  }: {
+    watch: (
+      configurationInput: TurbowatchConfigurationInput,
+    ) => Promise<TurbowatchController>;
+  } = jiti(__filename)('../watch');
 
   const argv = await yargs(hideBin(process.argv))
     .command('$0 [patterns...]', 'Start Turbowatch', (commandYargs) => {
@@ -129,7 +130,7 @@ const main = async () => {
 
   for (const resolvedPath of resolvedScriptPaths) {
     const turbowatchConfiguration = jiti(__filename)(resolvedPath)
-      .default as TurbowatchConfiguration;
+      .default as TurbowatchConfigurationInput;
 
     if (typeof turbowatchConfiguration?.Watcher !== 'function') {
       log.error(
@@ -141,16 +142,11 @@ const main = async () => {
       return;
     }
 
-    turbowatchController = await watch({
+    await watch({
+      abortController,
       cwd: path.dirname(resolvedPath),
       ...turbowatchConfiguration,
     });
-
-    if (terminating) {
-      log.warn('terminating');
-
-      await turbowatchController.shutdown();
-    }
   }
 };
 

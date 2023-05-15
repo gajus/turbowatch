@@ -137,6 +137,7 @@ export type WatcherConstructable = new (project: string) => FileWatchingBackend;
  */
 export type TurbowatchConfigurationInput = {
   readonly Watcher?: WatcherConstructable;
+  readonly abortController?: AbortController;
   readonly cwd?: string;
   readonly debounce?: Debounce;
   readonly project: string;
@@ -145,6 +146,7 @@ export type TurbowatchConfigurationInput = {
 
 export type TurbowatchConfiguration = {
   readonly Watcher: WatcherConstructable;
+  readonly abortController: AbortController;
   readonly cwd?: string;
   readonly debounce: Debounce;
   readonly project: string;
