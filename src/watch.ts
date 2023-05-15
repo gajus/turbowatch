@@ -1,110 +1,20 @@
 import { TurboWatcher } from './backends/TurboWatcher';
-import { deduplicateFileChangeEvents } from './deduplicateFileChangeEvents';
+import { createFileChangeQueue } from './createFileChangeQueue';
 import { generateShortId } from './generateShortId';
 import { Logger } from './Logger';
 import { subscribe } from './subscribe';
-import { testExpression } from './testExpression';
 import {
-  type Debounce,
-  type FileChangeEvent,
   type JsonObject,
   type Subscription,
   type TurbowatchConfiguration,
   type TurbowatchConfigurationInput,
   type TurbowatchController,
 } from './types';
-import path from 'node:path';
 import { serializeError } from 'serialize-error';
-import { debounce } from 'throttle-debounce';
 
 const log = Logger.child({
   namespace: 'watch',
 });
-
-const createFileChangeQueue = ({
-  project,
-  abortSignal,
-  userDebounce,
-  subscriptions,
-}: {
-  abortSignal: AbortSignal;
-  project: string;
-  subscriptions: Subscription[];
-  userDebounce: Debounce;
-}) => {
-  const fileHashMap: Record<string, string> = {};
-
-  let queuedFileChangeEvents: FileChangeEvent[] = [];
-
-  const evaluateSubscribers = debounce(
-    userDebounce.wait,
-    () => {
-      const currentFileChangeEvents = deduplicateFileChangeEvents(
-        queuedFileChangeEvents,
-      );
-
-      const filesWithUnchangedHash: string[] = [];
-
-      for (const fileChangeEvent of currentFileChangeEvents) {
-        const { filename, hash } = fileChangeEvent;
-
-        if (!hash) {
-          continue;
-        }
-
-        const previousHash = fileHashMap[filename];
-
-        if (previousHash === hash) {
-          filesWithUnchangedHash.push(filename);
-        } else {
-          fileHashMap[filename] = hash;
-        }
-      }
-
-      queuedFileChangeEvents = [];
-
-      for (const subscription of subscriptions) {
-        const relevantEvents = [];
-
-        for (const fileChangeEvent of currentFileChangeEvents) {
-          if (filesWithUnchangedHash.includes(fileChangeEvent.filename)) {
-            continue;
-          }
-
-          if (
-            !testExpression(
-              subscription.expression,
-              path.relative(project, fileChangeEvent.filename),
-            )
-          ) {
-            continue;
-          }
-
-          queuedFileChangeEvents.push(fileChangeEvent);
-        }
-
-        if (relevantEvents.length) {
-          if (abortSignal?.aborted) {
-            return;
-          }
-
-          void subscription.trigger(relevantEvents);
-        }
-      }
-    },
-    {
-      noLeading: true,
-    },
-  );
-
-  return {
-    trigger: (fileChangeEvent: FileChangeEvent) => {
-      queuedFileChangeEvents.push(fileChangeEvent);
-
-      evaluateSubscribers();
-    },
-  };
-};
 
 export const watch = (
   configurationInput: TurbowatchConfigurationInput,

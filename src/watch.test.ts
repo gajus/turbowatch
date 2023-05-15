@@ -6,9 +6,6 @@ import { type Message } from 'roarr';
 import * as sinon from 'sinon';
 import { afterEach, beforeEach, expect, it } from 'vitest';
 
-// eslint-disable-next-line node/no-process-env
-const { TURBOWATCH_EXPERIMENTAL_FILE_HASH } = process.env;
-
 const spyRoarr = () => {
   // eslint-disable-next-line node/no-process-env
   const { ROARR_LOG } = process.env;
@@ -78,39 +75,36 @@ it('detects file change', async () => {
   await shutdown();
 });
 
-it.skipIf(TURBOWATCH_EXPERIMENTAL_FILE_HASH !== 'true')(
-  'ignores file change events if the file hash is the same',
-  async () => {
-    const onChange = sinon.stub();
+it('ignores file change events if the file hash is the same', async () => {
+  const onChange = sinon.stub();
 
-    const { shutdown } = await watch({
-      debounce: {
-        wait: 100,
+  const { shutdown } = await watch({
+    debounce: {
+      wait: 100,
+    },
+    project: fixturesPath,
+    triggers: [
+      {
+        expression: ['match', 'foo', 'basename'],
+        initialRun: false,
+        name: 'foo',
+        onChange,
       },
-      project: fixturesPath,
-      triggers: [
-        {
-          expression: ['match', 'foo', 'basename'],
-          initialRun: false,
-          name: 'foo',
-          onChange,
-        },
-      ],
-    });
+    ],
+  });
 
-    await fs.writeFile(path.join(fixturesPath, 'foo'), '');
+  await fs.writeFile(path.join(fixturesPath, 'foo'), '');
 
-    await setTimeout(1_000);
+  await setTimeout(1_000);
 
-    await fs.writeFile(path.join(fixturesPath, 'foo'), '');
+  await fs.writeFile(path.join(fixturesPath, 'foo'), '');
 
-    await setTimeout(1_000);
+  await setTimeout(1_000);
 
-    expect(onChange.callCount).toBe(1);
+  expect(onChange.callCount).toBe(1);
 
-    await shutdown();
-  },
-);
+  await shutdown();
+});
 
 // https://github.com/gajus/turbowatch/issues/17
 it('does not log every file change', async () => {

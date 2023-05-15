@@ -626,11 +626,7 @@ These are features that are available behind feature flags (`TURBOWATCH_EXPERIME
 
 They are released to gather community feedback and may change at any point in future.
 
-### File hashing
-
-Hashes files and uses file hash comparison to determine if files have changed.
-
-To enable this behavior export `TURBOWATCH_EXPERIMENTAL_FILE_HASH=true` environment variable.
+> **Note** There are no active experiments at the moment.
 
 ## Alternatives
 

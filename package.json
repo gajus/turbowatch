@@ -62,7 +62,7 @@
     "lint:cspell": "cspell './**/*.{ts,tsx}' --no-progress --gitignore",
     "lint:eslint": "eslint --color .",
     "lint:tsc": "tsc",
-    "test:vitest": "vitest --passWithNoTests"
+    "test:vitest": "vitest --passWithNoTests --single-thread"
   },
   "types": "./dist/index.d.ts",
   "version": "1.0.0"
