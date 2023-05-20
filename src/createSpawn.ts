@@ -27,10 +27,14 @@ export const createSpawn = (
   {
     cwd = process.cwd(),
     abortSignal,
+    colorOutputPrefix = true,
+    prefixOutput = true,
     throttleOutput,
   }: {
     abortSignal?: AbortSignal;
+    colorOutputPrefix?: boolean;
     cwd?: string;
+    prefixOutput?: boolean;
     throttleOutput?: Throttle;
   } = {},
 ) => {
@@ -74,9 +78,20 @@ export const createSpawn = (
     let onStdout: (chunk: Buffer) => void;
     let onStderr: (chunk: Buffer) => void;
 
-    const formatChunk = (chunk: Buffer) => {
-      return prefixLines(chunk.toString().trimEnd(), colorText(taskId) + ' > ');
-    };
+    let formatChunk: (chunk: Buffer) => string;
+
+    if (prefixOutput) {
+      formatChunk = (chunk: Buffer) => {
+        return prefixLines(
+          chunk.toString().trimEnd(),
+          (colorOutputPrefix ? colorText(taskId) : taskId) + ' > ',
+        );
+      };
+    } else {
+      formatChunk = (chunk: Buffer) => {
+        return chunk.toString().trimEnd();
+      };
+    }
 
     if (throttleOutput?.delay) {
       onStdout = (chunk: Buffer) => {

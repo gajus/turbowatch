@@ -95,6 +95,11 @@ export type Throttle = {
   delay: number;
 };
 
+export type Output = {
+  colorPrefix?: boolean;
+  prefix?: boolean;
+};
+
 /**
  * @property expression watchman expression, e.g. https://facebook.github.io/watchman/docs/expr/allof.html
  * @property interruptible Sends abort signal to an ongoing routine, if any. Otherwise, waits for routine to finish. (default: true)
@@ -110,6 +115,7 @@ type TriggerInput = {
   name: string;
   onChange: OnChangeEventHandler;
   onTeardown?: OnTeardownEventHandler;
+  output?: Output;
   persistent?: boolean;
   retry?: Retry;
   throttleOutput?: Throttle;
@@ -125,6 +131,7 @@ export type Trigger = {
   name: string;
   onChange: OnChangeEventHandler;
   onTeardown?: OnTeardownEventHandler;
+  output?: Output;
   persistent: boolean;
   retry: Retry;
   throttleOutput: Throttle;

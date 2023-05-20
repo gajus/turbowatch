@@ -107,6 +107,7 @@ export const watch = (
         name: trigger.name,
         onChange: trigger.onChange,
         onTeardown: trigger.onTeardown,
+        output: trigger.output,
         persistent,
         retry: trigger.retry ?? {
           retries: 0,
