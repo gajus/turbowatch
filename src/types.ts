@@ -103,7 +103,7 @@ export type Throttle = {
  * @property onChange Routine that is executed when file changes are detected.
  * @property persistent Label a task as persistent if it is a long-running process, such as a dev server or --watch mode.
  */
-type TriggerInput = {
+export type TriggerInput = {
   expression: Expression;
   initialRun?: boolean;
   interruptible?: boolean;
