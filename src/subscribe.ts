@@ -160,7 +160,9 @@ export const subscribe = (trigger: Trigger): Subscription => {
           log,
           spawn: createSpawn(taskId, {
             abortSignal,
+            colorOutputPrefix: trigger.output?.colorPrefix,
             cwd: trigger.cwd,
+            prefixOutput: trigger.output?.prefix,
             throttleOutput: trigger.throttleOutput,
           }),
           taskId,
@@ -227,6 +229,8 @@ export const subscribe = (trigger: Trigger): Subscription => {
         try {
           await trigger.onTeardown({
             spawn: createSpawn(taskId, {
+              colorOutputPrefix: trigger.output?.colorPrefix,
+              prefixOutput: trigger.output?.prefix,
               throttleOutput: trigger.throttleOutput,
             }),
           });
