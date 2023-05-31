@@ -169,6 +169,14 @@ export const subscribe = (trigger: Trigger): Subscription => {
       {
         ...trigger.retry,
         onFailedAttempt: ({ retriesLeft }) => {
+          if (retriesLeft === 0) {
+            log.warn(
+              '%s (%s): task will not be retried; attempts exhausted',
+              trigger.name,
+              taskId,
+            );
+          }
+
           if (retriesLeft > 0) {
             log.warn(
               '%s (%s): retrying task %d/%d...',
