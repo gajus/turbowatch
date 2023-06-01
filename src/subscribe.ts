@@ -18,7 +18,10 @@ export const subscribe = (trigger: Trigger): Subscription => {
 
   let activeTask: ActiveTask | null = null;
 
-  let first = true;
+  /**
+   * Identifies the first event in a series of events.
+   */
+  let firstEvent = true;
 
   let fileChangeEventQueue: FileChangeEvent[] = [];
 
@@ -39,11 +42,11 @@ export const subscribe = (trigger: Trigger): Subscription => {
   }
 
   const handleSubscriptionEvent = async () => {
-    let currentFirst = first;
+    let localFirstEvent = firstEvent;
 
-    if (first) {
-      currentFirst = true;
-      first = false;
+    if (firstEvent) {
+      localFirstEvent = true;
+      firstEvent = false;
     }
 
     if (activeTask) {
@@ -117,7 +120,7 @@ export const subscribe = (trigger: Trigger): Subscription => {
 
     const taskId = generateShortId();
 
-    if (trigger.initialRun && currentFirst) {
+    if (trigger.initialRun && localFirstEvent) {
       log.debug('%s (%s): initial run...', trigger.name, taskId);
     } else if (event.files.length > 10) {
       log.debug(
@@ -156,7 +159,7 @@ export const subscribe = (trigger: Trigger): Subscription => {
               name: file.name,
             };
           }),
-          first: currentFirst,
+          first: localFirstEvent,
           log,
           spawn: createSpawn(taskId, {
             abortSignal,
