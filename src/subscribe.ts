@@ -21,9 +21,12 @@ export const subscribe = (trigger: Trigger): Subscription => {
   /**
    * Identifies the first event in a series of events.
    */
-  let firstEvent = true;
+  let outerFirstEvent = true;
 
-  let fileChangeEventQueue: FileChangeEvent[] = [];
+  /**
+   * Stores the files that have changed since the last evaluation of the trigger
+   */
+  let outerChangedFiles: string[] = [];
 
   let abortController: AbortController | null = null;
 
@@ -42,11 +45,11 @@ export const subscribe = (trigger: Trigger): Subscription => {
   }
 
   const handleSubscriptionEvent = async () => {
-    let localFirstEvent = firstEvent;
+    let firstEvent = outerFirstEvent;
 
-    if (firstEvent) {
-      localFirstEvent = true;
-      firstEvent = false;
+    if (outerFirstEvent) {
+      firstEvent = true;
+      outerFirstEvent = false;
     }
 
     if (activeTask) {
@@ -97,55 +100,34 @@ export const subscribe = (trigger: Trigger): Subscription => {
       return undefined;
     }
 
-    const affectedPaths: string[] = [];
+    const changedFiles = outerChangedFiles;
 
-    const event = {
-      files: fileChangeEventQueue
-        .filter(({ filename }) => {
-          if (affectedPaths.includes(filename)) {
-            return false;
-          }
-
-          affectedPaths.push(filename);
-          return true;
-        })
-        .map(({ filename }) => {
-          return {
-            name: filename,
-          };
-        }),
-    };
-
-    fileChangeEventQueue = [];
+    outerChangedFiles = [];
 
     const taskId = generateShortId();
 
-    if (trigger.initialRun && localFirstEvent) {
+    if (trigger.initialRun && firstEvent) {
       log.debug('%s (%s): initial run...', trigger.name, taskId);
-    } else if (event.files.length > 10) {
+    } else if (changedFiles.length > 10) {
       log.debug(
         {
-          files: event.files.slice(0, 10).map((file) => {
-            return file.name;
-          }),
+          files: changedFiles.slice(0, 10),
         },
         '%s (%s): %d files changed; showing first 10',
         trigger.name,
         taskId,
-        event.files.length,
+        changedFiles.length,
       );
     } else {
       log.debug(
         {
-          files: event.files.map((file) => {
-            return file.name;
-          }),
+          files: changedFiles,
         },
         '%s (%s): %d %s changed',
         trigger.name,
         taskId,
-        event.files.length,
-        event.files.length === 1 ? 'file' : 'files',
+        changedFiles.length,
+        changedFiles.length === 1 ? 'file' : 'files',
       );
     }
 
@@ -154,12 +136,12 @@ export const subscribe = (trigger: Trigger): Subscription => {
         return trigger.onChange({
           abortSignal,
           attempt,
-          files: event.files.map((file) => {
+          files: changedFiles.map((changedFile) => {
             return {
-              name: file.name,
+              name: changedFile,
             };
           }),
-          first: localFirstEvent,
+          first: firstEvent,
           log,
           spawn: createSpawn(taskId, {
             abortSignal,
@@ -252,7 +234,13 @@ export const subscribe = (trigger: Trigger): Subscription => {
       }
     },
     trigger: async (events: readonly FileChangeEvent[]) => {
-      fileChangeEventQueue.push(...events);
+      for (const event of events) {
+        if (outerChangedFiles.includes(event.filename)) {
+          continue;
+        }
+
+        outerChangedFiles.push(event.filename);
+      }
 
       try {
         await handleSubscriptionEvent();
