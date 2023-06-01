@@ -28,6 +28,89 @@ const createAbortController = (trigger: Trigger) => {
   return abortController;
 };
 
+const runTask = ({
+  taskId,
+  abortController,
+  trigger,
+  firstEvent,
+  changedFiles,
+}: {
+  abortController: AbortController;
+  changedFiles: readonly string[];
+  firstEvent: boolean;
+  taskId: string;
+  trigger: Trigger;
+}) => {
+  if (trigger.initialRun && firstEvent) {
+    log.debug('%s (%s): initial run...', trigger.name, taskId);
+  } else if (changedFiles.length > 10) {
+    log.debug(
+      {
+        files: changedFiles.slice(0, 10),
+      },
+      '%s (%s): %d files changed; showing first 10',
+      trigger.name,
+      taskId,
+      changedFiles.length,
+    );
+  } else {
+    log.debug(
+      {
+        files: changedFiles,
+      },
+      '%s (%s): %d %s changed',
+      trigger.name,
+      taskId,
+      changedFiles.length,
+      changedFiles.length === 1 ? 'file' : 'files',
+    );
+  }
+
+  return retry(
+    (attempt: number) => {
+      return trigger.onChange({
+        abortSignal: abortController?.signal,
+        attempt,
+        files: changedFiles.map((changedFile) => {
+          return {
+            name: changedFile,
+          };
+        }),
+        first: firstEvent,
+        log,
+        spawn: createSpawn(taskId, {
+          abortSignal: abortController?.signal,
+          cwd: trigger.cwd,
+          throttleOutput: trigger.throttleOutput,
+        }),
+        taskId,
+      });
+    },
+    {
+      ...trigger.retry,
+      onFailedAttempt: ({ retriesLeft }) => {
+        if (retriesLeft === 0) {
+          log.warn(
+            '%s (%s): task will not be retried; attempts exhausted',
+            trigger.name,
+            taskId,
+          );
+        }
+
+        if (retriesLeft > 0) {
+          log.warn(
+            '%s (%s): retrying task %d/%d...',
+            trigger.name,
+            taskId,
+            trigger.retry.retries - retriesLeft,
+            trigger.retry.retries,
+          );
+        }
+      },
+    },
+  );
+};
+
 export const subscribe = (trigger: Trigger): Subscription => {
   /**
    * Indicates that the teardown process has been initiated.
@@ -112,77 +195,15 @@ export const subscribe = (trigger: Trigger): Subscription => {
 
     const taskId = generateShortId();
 
-    if (trigger.initialRun && firstEvent) {
-      log.debug('%s (%s): initial run...', trigger.name, taskId);
-    } else if (changedFiles.length > 10) {
-      log.debug(
-        {
-          files: changedFiles.slice(0, 10),
-        },
-        '%s (%s): %d files changed; showing first 10',
-        trigger.name,
-        taskId,
-        changedFiles.length,
-      );
-    } else {
-      log.debug(
-        {
-          files: changedFiles,
-        },
-        '%s (%s): %d %s changed',
-        trigger.name,
-        taskId,
-        changedFiles.length,
-        changedFiles.length === 1 ? 'file' : 'files',
-      );
-    }
-
     const abortController = createAbortController(trigger);
 
-    const taskPromise = retry(
-      (attempt: number) => {
-        return trigger.onChange({
-          abortSignal: abortController?.signal,
-          attempt,
-          files: changedFiles.map((changedFile) => {
-            return {
-              name: changedFile,
-            };
-          }),
-          first: firstEvent,
-          log,
-          spawn: createSpawn(taskId, {
-            abortSignal: abortController?.signal,
-            cwd: trigger.cwd,
-            throttleOutput: trigger.throttleOutput,
-          }),
-          taskId,
-        });
-      },
-      {
-        ...trigger.retry,
-        onFailedAttempt: ({ retriesLeft }) => {
-          if (retriesLeft === 0) {
-            log.warn(
-              '%s (%s): task will not be retried; attempts exhausted',
-              trigger.name,
-              taskId,
-            );
-          }
-
-          if (retriesLeft > 0) {
-            log.warn(
-              '%s (%s): retrying task %d/%d...',
-              trigger.name,
-              taskId,
-              trigger.retry.retries - retriesLeft,
-              trigger.retry.retries,
-            );
-          }
-        },
-      },
-    )
-      // eslint-disable-next-line promise/prefer-await-to-then
+    const taskPromise = runTask({
+      abortController,
+      changedFiles,
+      firstEvent,
+      taskId,
+      trigger,
+    }) // eslint-disable-next-line promise/prefer-await-to-then
       .then(() => {
         if (taskId === outerActiveTask?.id) {
           log.debug('%s (%s): completed task', trigger.name, taskId);
@@ -195,6 +216,8 @@ export const subscribe = (trigger: Trigger): Subscription => {
         log.warn('%s (%s): task failed', trigger.name, taskId);
       });
 
+    log.debug('%s (%s): started task', trigger.name, taskId);
+
     // eslint-disable-next-line require-atomic-updates
     outerActiveTask = {
       abortController,
@@ -202,8 +225,6 @@ export const subscribe = (trigger: Trigger): Subscription => {
       promise: taskPromise,
       queued: false,
     };
-
-    log.debug('%s (%s): started task', trigger.name, taskId);
 
     return taskPromise;
   };
