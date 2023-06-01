@@ -7,7 +7,6 @@ import {
   type Subscription,
   type Trigger,
 } from './types';
-import retry from 'p-retry';
 
 const log = Logger.child({
   namespace: 'subscribe',
@@ -28,7 +27,7 @@ const createAbortController = (trigger: Trigger) => {
   return abortController;
 };
 
-const runTask = ({
+const runTask = async ({
   taskId,
   abortController,
   trigger,
@@ -66,9 +65,17 @@ const runTask = ({
     );
   }
 
-  return retry(
-    (attempt: number) => {
-      return trigger.onChange({
+  let attempt = -1;
+
+  while (attempt++ < trigger.retry.retries) {
+    const retriesLeft = trigger.retry.retries - attempt;
+
+    if (retriesLeft < 0) {
+      throw new Error('Expected retries left to be greater than or equal to 0');
+    }
+
+    try {
+      await trigger.onChange({
         abortSignal: abortController?.signal,
         attempt,
         files: changedFiles.map((changedFile) => {
@@ -85,30 +92,40 @@ const runTask = ({
         }),
         taskId,
       });
-    },
-    {
-      ...trigger.retry,
-      onFailedAttempt: ({ retriesLeft }) => {
-        if (retriesLeft === 0) {
-          log.warn(
-            '%s (%s): task will not be retried; attempts exhausted',
-            trigger.name,
-            taskId,
-          );
-        }
+    } catch (error) {
+      if (error.name === 'AbortError') {
+        log.warn('%s (%s): task aborted', trigger.name, taskId);
 
-        if (retriesLeft > 0) {
-          log.warn(
-            '%s (%s): retrying task %d/%d...',
-            trigger.name,
-            taskId,
-            trigger.retry.retries - retriesLeft,
-            trigger.retry.retries,
-          );
-        }
-      },
-    },
-  );
+        return;
+      }
+
+      if (retriesLeft === 0) {
+        log.warn(
+          '%s (%s): task will not be retried; attempts exhausted',
+          trigger.name,
+          taskId,
+        );
+
+        throw error;
+      }
+
+      if (retriesLeft > 0) {
+        log.warn(
+          '%s (%s): retrying task %d/%d...',
+          trigger.name,
+          taskId,
+          trigger.retry.retries - retriesLeft,
+          trigger.retry.retries,
+        );
+
+        continue;
+      }
+
+      throw new Error('Expected retries left to be greater than or equal to 0');
+    }
+  }
+
+  throw new Error('Expected while loop to be terminated by a return statement');
 };
 
 export const subscribe = (trigger: Trigger): Subscription => {
