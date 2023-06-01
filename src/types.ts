@@ -116,7 +116,7 @@ export type TriggerInput = {
 };
 
 export type Trigger = {
-  abortSignal?: AbortSignal;
+  abortSignal: AbortSignal;
   cwd?: string;
   expression: Expression;
   id: string;

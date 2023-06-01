@@ -13,6 +13,21 @@ const log = Logger.child({
   namespace: 'subscribe',
 });
 
+/**
+ * Creates a trigger evaluation specific abort controller that inherits the abort signal from the trigger.
+ * This abort controller is used to abort the the task that is currently running either because the trigger
+ * has been interrupted or because the trigger has been triggered again.
+ */
+const createAbortController = (trigger: Trigger) => {
+  const abortController = new AbortController();
+
+  trigger.abortSignal.addEventListener('abort', () => {
+    abortController.abort();
+  });
+
+  return abortController;
+};
+
 export const subscribe = (trigger: Trigger): Subscription => {
   let teardownInitiated = false;
 
@@ -27,22 +42,6 @@ export const subscribe = (trigger: Trigger): Subscription => {
    * Stores the files that have changed since the last evaluation of the trigger
    */
   let outerChangedFiles: string[] = [];
-
-  let abortController: AbortController | null = null;
-
-  if (trigger.interruptible) {
-    abortController = new AbortController();
-  }
-
-  let abortSignal = abortController?.signal;
-
-  if (abortSignal && trigger.abortSignal) {
-    trigger.abortSignal.addEventListener('abort', () => {
-      abortController?.abort();
-    });
-  } else if (trigger.abortSignal) {
-    abortSignal = trigger.abortSignal;
-  }
 
   const handleSubscriptionEvent = async () => {
     let firstEvent = outerFirstEvent;
@@ -131,10 +130,12 @@ export const subscribe = (trigger: Trigger): Subscription => {
       );
     }
 
+    const abortController = createAbortController(trigger);
+
     const taskPromise = retry(
       (attempt: number) => {
         return trigger.onChange({
-          abortSignal,
+          abortSignal: abortController?.signal,
           attempt,
           files: changedFiles.map((changedFile) => {
             return {
@@ -144,7 +145,7 @@ export const subscribe = (trigger: Trigger): Subscription => {
           first: firstEvent,
           log,
           spawn: createSpawn(taskId, {
-            abortSignal,
+            abortSignal: abortController?.signal,
             cwd: trigger.cwd,
             throttleOutput: trigger.throttleOutput,
           }),

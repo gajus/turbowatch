@@ -5,6 +5,7 @@ import * as sinon from 'sinon';
 import { expect, it } from 'vitest';
 
 const defaultTrigger = {
+  abortSignal: new AbortController().signal,
   expression: ['match', 'foo', 'basename'],
   id: 'foo',
   initialRun: true,
