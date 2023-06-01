@@ -76,7 +76,7 @@ type OnTeardownEventHandler = (event: TeardownEvent) => Promise<void>;
 
 /**
  * @property factor The exponential factor to use. Default is 2.
- * @property maxTimeout The maximum number of milliseconds between two retries. Default is Infinity.
+ * @property maxTimeout The maximum number of milliseconds between two retries. Default is 30,000.
  * @property minTimeout The number of milliseconds before starting the first retry. Default is 1000.
  * @property retries The maximum amount of times to retry the operation. Default is 10. Seting this to 1 means do it once, then retry it once.
  */

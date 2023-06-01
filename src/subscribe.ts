@@ -7,6 +7,8 @@ import {
   type Subscription,
   type Trigger,
 } from './types';
+import { setTimeout } from 'node:timers/promises';
+import { serializeError } from 'serialize-error';
 
 const log = Logger.child({
   namespace: 'subscribe',
@@ -67,11 +69,21 @@ const runTask = async ({
 
   let attempt = -1;
 
-  while (attempt++ < trigger.retry.retries) {
-    const retriesLeft = trigger.retry.retries - attempt;
+  while (true) {
+    attempt++;
 
-    if (retriesLeft < 0) {
-      throw new Error('Expected retries left to be greater than or equal to 0');
+    if (attempt > 0) {
+      const retryFactor = trigger.retry.factor ?? 2;
+      const minTimeout = trigger.retry.minTimeout ?? 1_000;
+      const maxTimeout = trigger.retry.maxTimeout ?? 30_000;
+      const delay = Math.min(
+        attempt * retryFactor * minTimeout,
+        trigger.retry.maxTimeout ?? maxTimeout,
+      );
+
+      log.debug('delaying retry by %dms...', delay);
+
+      await setTimeout(delay);
     }
 
     try {
@@ -92,11 +104,38 @@ const runTask = async ({
         }),
         taskId,
       });
+
+      return;
     } catch (error) {
       if (error.name === 'AbortError') {
         log.warn('%s (%s): task aborted', trigger.name, taskId);
 
         return;
+      }
+
+      log.warn(
+        {
+          error: serializeError(error),
+        },
+        'routine produced an error',
+      );
+
+      if (trigger.persistent) {
+        log.warn(
+          '%s (%s): retrying because the trigger is persistent',
+          trigger.name,
+          taskId,
+        );
+
+        continue;
+      }
+
+      const retriesLeft = trigger.retry.retries - attempt;
+
+      if (retriesLeft < 0) {
+        throw new Error(
+          'Expected retries left to be greater than or equal to 0',
+        );
       }
 
       if (retriesLeft === 0) {
@@ -229,8 +268,15 @@ export const subscribe = (trigger: Trigger): Subscription => {
         }
       })
       // eslint-disable-next-line promise/prefer-await-to-then
-      .catch(() => {
-        log.warn('%s (%s): task failed', trigger.name, taskId);
+      .catch((error) => {
+        log.warn(
+          {
+            error: serializeError(error),
+          },
+          '%s (%s): task failed',
+          trigger.name,
+          taskId,
+        );
       });
 
     log.debug('%s (%s): started task', trigger.name, taskId);
