@@ -293,9 +293,9 @@ export const subscribe = (trigger: Trigger): Subscription => {
   };
 
   return {
+    activeTask: outerActiveTask,
     expression: trigger.expression,
     initialRun: trigger.initialRun,
-    outerActiveTask,
     persistent: trigger.persistent,
     teardown: async () => {
       if (outerTeardownInitiated) {
