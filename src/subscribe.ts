@@ -22,28 +22,28 @@ export const subscribe = (trigger: Trigger): Subscription => {
 
   let fileChangeEventQueue: FileChangeEvent[] = [];
 
+  let abortController: AbortController | null = null;
+
+  if (trigger.interruptible) {
+    abortController = new AbortController();
+  }
+
+  let abortSignal = abortController?.signal;
+
+  if (abortSignal && trigger.abortSignal) {
+    trigger.abortSignal.addEventListener('abort', () => {
+      abortController?.abort();
+    });
+  } else if (trigger.abortSignal) {
+    abortSignal = trigger.abortSignal;
+  }
+
   const handleSubscriptionEvent = async () => {
     let currentFirst = first;
 
     if (first) {
       currentFirst = true;
       first = false;
-    }
-
-    let abortController: AbortController | null = null;
-
-    if (trigger.interruptible) {
-      abortController = new AbortController();
-    }
-
-    let abortSignal = abortController?.signal;
-
-    if (abortSignal && trigger.abortSignal) {
-      trigger.abortSignal.addEventListener('abort', () => {
-        abortController?.abort();
-      });
-    } else if (trigger.abortSignal) {
-      abortSignal = trigger.abortSignal;
     }
 
     if (activeTask) {
