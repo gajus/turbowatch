@@ -29,9 +29,16 @@ const createAbortController = (trigger: Trigger) => {
 };
 
 export const subscribe = (trigger: Trigger): Subscription => {
-  let teardownInitiated = false;
+  /**
+   * Indicates that the teardown process has been initiated.
+   * This is used to prevent the trigger from being triggered again while the teardown process is running.
+   */
+  let outerTeardownInitiated = false;
 
-  let activeTask: ActiveTask | null = null;
+  /**
+   * Stores the currently active task.
+   */
+  let outerActiveTask: ActiveTask | null = null;
 
   /**
    * Identifies the first event in a series of events.
@@ -51,23 +58,23 @@ export const subscribe = (trigger: Trigger): Subscription => {
       outerFirstEvent = false;
     }
 
-    if (activeTask) {
+    if (outerActiveTask) {
       if (trigger.interruptible) {
-        log.warn('%s (%s): aborted task', trigger.name, activeTask.id);
+        log.warn('%s (%s): aborted task', trigger.name, outerActiveTask.id);
 
-        if (!activeTask.abortController) {
+        if (!outerActiveTask.abortController) {
           throw new Error('Expected abort controller to be set');
         }
 
-        activeTask.abortController.abort();
+        outerActiveTask.abortController.abort();
 
-        activeTask = null;
+        outerActiveTask = null;
       } else {
         if (trigger.persistent) {
           log.warn(
             '%s (%s): ignoring event because the trigger is persistent',
             trigger.name,
-            activeTask.id,
+            outerActiveTask.id,
           );
 
           return undefined;
@@ -76,24 +83,24 @@ export const subscribe = (trigger: Trigger): Subscription => {
         log.warn(
           '%s (%s): waiting for task to complete',
           trigger.name,
-          activeTask.id,
+          outerActiveTask.id,
         );
 
-        if (activeTask.queued) {
+        if (outerActiveTask.queued) {
           return undefined;
         }
 
-        activeTask.queued = true;
+        outerActiveTask.queued = true;
 
         try {
-          await activeTask.promise;
+          await outerActiveTask.promise;
         } catch {
           // nothing to do
         }
       }
     }
 
-    if (teardownInitiated) {
+    if (outerTeardownInitiated) {
       log.warn('teardown already initiated');
 
       return undefined;
@@ -177,10 +184,10 @@ export const subscribe = (trigger: Trigger): Subscription => {
     )
       // eslint-disable-next-line promise/prefer-await-to-then
       .then(() => {
-        if (taskId === activeTask?.id) {
+        if (taskId === outerActiveTask?.id) {
           log.debug('%s (%s): completed task', trigger.name, taskId);
 
-          activeTask = null;
+          outerActiveTask = null;
         }
       })
       // eslint-disable-next-line promise/prefer-await-to-then
@@ -189,7 +196,7 @@ export const subscribe = (trigger: Trigger): Subscription => {
       });
 
     // eslint-disable-next-line require-atomic-updates
-    activeTask = {
+    outerActiveTask = {
       abortController,
       id: taskId,
       promise: taskPromise,
@@ -202,18 +209,18 @@ export const subscribe = (trigger: Trigger): Subscription => {
   };
 
   return {
-    activeTask,
     expression: trigger.expression,
     initialRun: trigger.initialRun,
+    outerActiveTask,
     persistent: trigger.persistent,
     teardown: async () => {
-      if (teardownInitiated) {
+      if (outerTeardownInitiated) {
         log.warn('teardown already initiated');
 
         return;
       }
 
-      teardownInitiated = true;
+      outerTeardownInitiated = true;
 
       if (trigger.onTeardown) {
         const taskId = generateShortId();
