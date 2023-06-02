@@ -120,9 +120,9 @@ void watch({
       // Label a task as persistent if it is a long-running process, such as a dev server or --watch mode.
       persistent: false,
       // Retry a task if it fails. Otherwise, watch program will throw an error if trigger fails.
-      // Defaults to { retries: 0 }
+      // Defaults to { retries: 3 }
       retry: {
-        retries: 5,
+        retries: 3,
       },
     },
   ],
@@ -403,7 +403,7 @@ Retries are configured by passing a `retry` property to the trigger configuratio
  * @property factor The exponential factor to use. Default is 2.
  * @property maxTimeout The maximum number of milliseconds between two retries. Default is 30,000.
  * @property minTimeout The number of milliseconds before starting the first retry. Default is 1000.
- * @property retries The maximum amount of times to retry the operation. Default is 0. Seting this to 1 means do it once, then retry it once.
+ * @property retries The maximum amount of times to retry the operation. Default is 3. Seting this to 1 means do it once, then retry it once.
  */
 type Retry = {
   factor?: number,

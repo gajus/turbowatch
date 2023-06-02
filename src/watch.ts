@@ -108,8 +108,9 @@ export const watch = (
         onChange: trigger.onChange,
         onTeardown: trigger.onTeardown,
         persistent,
-        retry: trigger.retry ?? {
-          retries: 0,
+        retry: {
+          retries: 3,
+          ...trigger.retry,
         },
         throttleOutput: trigger.throttleOutput ?? { delay: 1_000 },
       }),
