@@ -138,6 +138,7 @@ it.skip('ignores file change events if the file hash is the same; file existed b
 });
 
 // https://github.com/gajus/turbowatch/issues/17
+// Not clear why this is failing in CI/CD.
 it.skip('does not log every file change', async () => {
   const onChange = sinon.stub();
 

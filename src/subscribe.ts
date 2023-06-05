@@ -318,8 +318,6 @@ export const subscribe = (trigger: Trigger): Subscription => {
     initialRun: trigger.initialRun,
     persistent: trigger.persistent,
     teardown: async () => {
-      console.log('TEARDOWN', outerActiveTask?.abortController);
-
       if (outerTeardownInitiated) {
         log.warn('teardown already initiated');
 
