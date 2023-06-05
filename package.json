@@ -18,6 +18,7 @@
     "semver": "^7.3.8",
     "serialize-error": "^11.0.0",
     "throttle-debounce": "^5.0.0",
+    "ts-custom-error": "^3.3.1",
     "yargs": "^17.7.1",
     "zx": "^7.2.1"
   },

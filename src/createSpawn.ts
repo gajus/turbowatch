@@ -1,5 +1,6 @@
 // cspell:words nothrow
 
+import { AbortError, UnexpectedError } from './errors';
 import { findNearestDirectory } from './findNearestDirectory';
 import { Logger } from './Logger';
 import { type Throttle } from './types';
@@ -100,6 +101,12 @@ export const createSpawn = (
       };
     }
 
+    if (abortSignal?.aborted) {
+      throw new UnexpectedError(
+        'Attempted to spawn a process after the task was aborted.',
+      );
+    }
+
     // eslint-disable-next-line promise/prefer-await-to-then
     const processPromise = $(pieces, ...args)
       .nothrow()
@@ -136,7 +143,7 @@ export const createSpawn = (
     }
 
     if (abortSignal?.aborted) {
-      throw new Error('Program was aborted.');
+      throw new AbortError('Program was aborted.');
     }
 
     log.error('task %s exited with an error', taskId);
