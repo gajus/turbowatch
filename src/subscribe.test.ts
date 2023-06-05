@@ -270,7 +270,7 @@ it('reports { first: true } only for the first event', async () => {
   expect(subscriptionMock.verify());
 });
 
-it('retries persistent routine if it exits', async () => {
+it('retries persistent routine if it exits with success', async () => {
   const trigger = {
     ...defaultTrigger,
     persistent: true,
@@ -280,19 +280,48 @@ it('retries persistent routine if it exits', async () => {
     },
   };
 
-  const subscriptionMock = sinon.mock(trigger);
-
-  const onChange = subscriptionMock.expects('onChange').twice();
+  const onChange = sinon.stub(trigger, 'onChange');
 
   onChange.resolves(() => {
-    return wait(200);
+    return wait(100);
   });
 
   const subscription = await subscribe(trigger);
 
   void subscription.trigger([]);
 
-  await wait(1_000);
+  await wait(500);
 
   subscription.activeTask?.abortController?.abort();
+
+  expect(onChange.callCount).toBeGreaterThan(2);
+});
+
+it('retries persistent routine if it exists with error', async () => {
+  const trigger = {
+    ...defaultTrigger,
+    persistent: true,
+    retry: {
+      maxTimeout: 100,
+      retries: 1,
+    },
+  };
+
+  const onChange = sinon.stub(trigger, 'onChange');
+
+  onChange.resolves(async () => {
+    await wait(100);
+
+    throw new Error('foo');
+  });
+
+  const subscription = await subscribe(trigger);
+
+  void subscription.trigger([]);
+
+  await wait(500);
+
+  subscription.activeTask?.abortController?.abort();
+
+  expect(onChange.callCount).toBeGreaterThan(2);
 });
