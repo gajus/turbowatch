@@ -67,17 +67,17 @@ const runTask = async ({
     );
   }
 
-  let attempt = -1;
+  let failedAttempts = -1;
 
   while (true) {
-    attempt++;
+    failedAttempts++;
 
-    if (attempt > 0) {
+    if (failedAttempts > 0) {
       const retryFactor = trigger.retry.factor ?? 2;
       const minTimeout = trigger.retry.minTimeout ?? 1_000;
       const maxTimeout = trigger.retry.maxTimeout ?? 30_000;
       const delay = Math.min(
-        attempt * retryFactor * minTimeout,
+        failedAttempts * retryFactor * minTimeout,
         trigger.retry.maxTimeout ?? maxTimeout,
       );
 
@@ -89,7 +89,7 @@ const runTask = async ({
     try {
       await trigger.onChange({
         abortSignal: abortController?.signal,
-        attempt,
+        attempt: failedAttempts,
         files: changedFiles.map((changedFile) => {
           return {
             name: changedFile,
@@ -104,6 +104,18 @@ const runTask = async ({
         }),
         taskId,
       });
+
+      failedAttempts = 0;
+
+      if (trigger.persistent) {
+        log.debug(
+          '%s (%s): re-running because the trigger is persistent',
+          trigger.name,
+          taskId,
+        );
+
+        continue;
+      }
 
       return;
     } catch (error) {
@@ -132,7 +144,7 @@ const runTask = async ({
         continue;
       }
 
-      const retriesLeft = trigger.retry.retries - attempt;
+      const retriesLeft = trigger.retry.retries - failedAttempts;
 
       if (retriesLeft < 0) {
         throw new Error(

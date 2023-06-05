@@ -269,3 +269,30 @@ it('reports { first: true } only for the first event', async () => {
 
   expect(subscriptionMock.verify());
 });
+
+it('retries persistent routine if it exits', async () => {
+  const trigger = {
+    ...defaultTrigger,
+    persistent: true,
+    retry: {
+      maxTimeout: 100,
+      retries: 1,
+    },
+  };
+
+  const subscriptionMock = sinon.mock(trigger);
+
+  const onChange = subscriptionMock.expects('onChange').twice();
+
+  onChange.resolves(() => {
+    return wait(200);
+  });
+
+  const subscription = await subscribe(trigger);
+
+  void subscription.trigger([]);
+
+  await wait(1_000);
+
+  subscription.activeTask?.abortController?.abort();
+});
