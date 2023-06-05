@@ -229,11 +229,12 @@ export const subscribe = (trigger: Trigger): Subscription => {
 
         const abortedTaskPromise = outerActiveTask.promise;
 
-        outerActiveTask = null;
-
         // Do not start a new task until the previous task has been
         // aborted and the shutdown routine has run to completion.
         await abortedTaskPromise;
+
+        // eslint-disable-next-line require-atomic-updates
+        outerActiveTask = null;
       } else {
         if (trigger.persistent) {
           log.warn(
