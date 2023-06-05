@@ -201,7 +201,7 @@ export const subscribe = (trigger: Trigger): Subscription => {
 
     if (outerActiveTask) {
       if (trigger.interruptible) {
-        log.warn('%s (%s): aborted task', trigger.name, outerActiveTask.id);
+        log.debug('%s (%s): aborting task', trigger.name, outerActiveTask.id);
 
         if (!outerActiveTask.abortController) {
           throw new Error('Expected abort controller to be set');
