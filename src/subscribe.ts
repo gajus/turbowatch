@@ -227,14 +227,25 @@ export const subscribe = (trigger: Trigger): Subscription => {
 
         outerActiveTask.abortController.abort();
 
-        const abortedTaskPromise = outerActiveTask.promise;
+        log.debug(
+          '%s (%s): waiting for task to abort',
+          trigger.name,
+          outerActiveTask.id,
+        );
 
-        // Do not start a new task until the previous task has been
-        // aborted and the shutdown routine has run to completion.
-        await abortedTaskPromise;
+        if (outerActiveTask.queued) {
+          return undefined;
+        }
 
-        // eslint-disable-next-line require-atomic-updates
-        outerActiveTask = null;
+        outerActiveTask.queued = true;
+
+        try {
+          // Do not start a new task until the previous task has been
+          // aborted and the shutdown routine has run to completion.
+          await outerActiveTask.promise;
+        } catch {
+          // nothing to do
+        }
       } else {
         if (trigger.persistent) {
           log.warn(
@@ -287,7 +298,7 @@ export const subscribe = (trigger: Trigger): Subscription => {
       taskId,
       trigger,
     }) // eslint-disable-next-line promise/prefer-await-to-then
-      .then(() => {
+      .finally(() => {
         if (taskId === outerActiveTask?.id) {
           log.debug('%s (%s): completed task', trigger.name, taskId);
 
