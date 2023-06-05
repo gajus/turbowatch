@@ -117,7 +117,11 @@ export const createSpawn = (
 
     if (abortSignal) {
       const kill = () => {
-        processPromise.kill();
+        // eslint-disable-next-line promise/prefer-await-to-then
+        processPromise.kill().finally(() => {
+          processPromise.stdout.off('data', onStdout);
+          processPromise.stderr.off('data', onStderr);
+        });
       };
 
       abortSignal.addEventListener('abort', kill, {
