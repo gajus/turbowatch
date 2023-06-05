@@ -117,7 +117,9 @@ const runTask = async ({
         {
           error: serializeError(error),
         },
-        'routine produced an error',
+        '%s (%s): routine produced an error',
+        trigger.name,
+        taskId,
       );
 
       if (trigger.persistent) {
