@@ -166,7 +166,7 @@ it('does not log every file change', async () => {
 
   expect(onChange.called).toBe(true);
 
-  expect(roarrSpy.getMessages().length < 20).toBe(true);
+  expect(roarrSpy.getMessages().length).toBeLessThan(20);
 
   await shutdown();
 });
