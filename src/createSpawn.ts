@@ -119,8 +119,10 @@ export const createSpawn = (
       const kill = () => {
         // eslint-disable-next-line promise/prefer-await-to-then
         processPromise.kill().finally(() => {
-          processPromise.stdout.off('data', onStdout);
-          processPromise.stderr.off('data', onStderr);
+          log.debug('task %s was killed', taskId);
+
+          // processPromise.stdout.off('data', onStdout);
+          // processPromise.stderr.off('data', onStderr);
         });
       };
 
