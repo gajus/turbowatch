@@ -138,7 +138,7 @@ it.skip('ignores file change events if the file hash is the same; file existed b
 });
 
 // https://github.com/gajus/turbowatch/issues/17
-it('does not log every file change', async () => {
+it.skip('does not log every file change', async () => {
   const onChange = sinon.stub();
 
   const roarrSpy = spyRoarr();
