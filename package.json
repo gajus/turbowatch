@@ -10,9 +10,11 @@
   "dependencies": {
     "chalk": "^4.1.2",
     "chokidar": "^3.5.3",
+    "find-process": "^1.4.7",
     "glob": "^9.3.1",
     "jiti": "^1.18.2",
     "micromatch": "^4.0.5",
+    "pidtree": "^0.6.0",
     "randomcolor": "^0.6.2",
     "roarr": "^7.15.0",
     "semver": "^7.3.8",

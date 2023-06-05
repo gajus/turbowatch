@@ -2,6 +2,7 @@
 
 import { AbortError, UnexpectedError } from './errors';
 import { findNearestDirectory } from './findNearestDirectory';
+import { killPsTree } from './killPsTree';
 import { Logger } from './Logger';
 import { type Throttle } from './types';
 import chalk from 'chalk';
@@ -117,12 +118,21 @@ export const createSpawn = (
 
     if (abortSignal) {
       const kill = () => {
+        const pid = processPromise.child?.pid;
+
+        if (!pid) {
+          log.warn('no process to kill');
+
+          return;
+        }
+
+        // TODO make this configurable
         // eslint-disable-next-line promise/prefer-await-to-then
-        processPromise.kill().finally(() => {
+        killPsTree(pid, 5_000).then(() => {
           log.debug('task %s was killed', taskId);
 
-          // processPromise.stdout.off('data', onStdout);
-          // processPromise.stderr.off('data', onStderr);
+          processPromise.stdout.off('data', onStdout);
+          processPromise.stderr.off('data', onStderr);
         });
       };
 
