@@ -227,7 +227,13 @@ export const subscribe = (trigger: Trigger): Subscription => {
 
         outerActiveTask.abortController.abort();
 
+        const abortedTaskPromise = outerActiveTask.promise;
+
         outerActiveTask = null;
+
+        // Do not start a new task until the previous task has been
+        // aborted and the shutdown routine has run to completion.
+        await abortedTaskPromise;
       } else {
         if (trigger.persistent) {
           log.warn(

@@ -358,3 +358,35 @@ it('stops retrying persistent routine if teardown is called', async () => {
 
   expect(onChange.callCount).toBe(firstCallCount);
 });
+
+it('does not begin the new routine until the interrupted routine has completed', async () => {
+  const trigger = {
+    ...defaultTrigger,
+    interruptible: true,
+    persistent: true,
+    retry: {
+      maxTimeout: 100,
+      retries: 1,
+    },
+  };
+
+  const onChange = sinon.stub(trigger, 'onChange');
+
+  onChange.resolves(async () => {
+    await wait(100);
+  });
+
+  const subscription = await subscribe(trigger);
+
+  void subscription.trigger([]);
+
+  await wait(10);
+
+  void subscription.trigger([]);
+
+  await wait(10);
+
+  subscription.activeTask?.abortController?.abort();
+
+  expect(onChange.callCount).toBe(1);
+});
