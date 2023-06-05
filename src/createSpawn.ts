@@ -117,10 +117,6 @@ export const createSpawn = (
 
     if (abortSignal) {
       const kill = () => {
-        // TODO we might want to make this configurable (e.g. behind a debug flag), because these logs might provide valuable context when debugging shutdown logic.
-        processPromise.stdout.off('data', onStdout);
-        processPromise.stderr.off('data', onStderr);
-
         processPromise.kill();
       };
 
