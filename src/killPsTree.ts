@@ -33,22 +33,18 @@ export const killPsTree = async (
     }
   }, gracefulTimeout);
 
-  await Promise.all(
-    hangingPids.map(async (pid) => {
-      // eslint-disable-next-line no-unmodified-loop-condition
-      while (!hitTimeout) {
-        const processes = await findProcess('pid', pid);
+  // eslint-disable-next-line no-unmodified-loop-condition
+  while (!hitTimeout && hangingPids.length > 0) {
+    for (const hangingPid of hangingPids) {
+      const processes = await findProcess('pid', hangingPid);
 
-        if (processes.length === 0) {
-          hangingPids = hangingPids.filter((hangingPid) => hangingPid !== pid);
-
-          break;
-        }
-
-        await delay(100);
+      if (processes.length === 0) {
+        hangingPids = hangingPids.filter((pid) => pid !== hangingPid);
       }
-    }),
-  );
+    }
+
+    await delay(100);
+  }
 
   clearTimeout(timeoutId);
 
