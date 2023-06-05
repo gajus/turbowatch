@@ -1,5 +1,6 @@
 import { Logger } from './Logger';
 import findProcess from 'find-process';
+import { setTimeout as delay } from 'node:timers/promises';
 import pidTree from 'pidtree';
 
 const log = Logger.child({
@@ -33,30 +34,19 @@ export const killPsTree = async (
   }, gracefulTimeout);
 
   await Promise.all(
-    hangingPids.map((pid) => {
-      return new Promise((resolve) => {
-        const interval = setInterval(async () => {
-          if (hitTimeout) {
-            clearInterval(interval);
+    hangingPids.map(async (pid) => {
+      // eslint-disable-next-line no-unmodified-loop-condition
+      while (!hitTimeout) {
+        const processes = await findProcess('pid', pid);
 
-            resolve(false);
+        if (processes.length === 0) {
+          hangingPids = hangingPids.filter((hangingPid) => hangingPid !== pid);
 
-            return;
-          }
+          break;
+        }
 
-          const processes = await findProcess('pid', pid);
-
-          if (processes.length === 0) {
-            hangingPids = hangingPids.filter(
-              (hangingPid) => hangingPid !== pid,
-            );
-
-            clearInterval(interval);
-
-            resolve(true);
-          }
-        }, 100);
-      });
+        await delay(100);
+      }
     }),
   );
 
