@@ -70,6 +70,12 @@ const runTask = async ({
   let failedAttempts = -1;
 
   while (true) {
+    if (abortController.signal.aborted) {
+      log.warn('%s (%s): task aborted', trigger.name, taskId);
+
+      return;
+    }
+
     failedAttempts++;
 
     if (failedAttempts > 0) {
@@ -312,6 +318,8 @@ export const subscribe = (trigger: Trigger): Subscription => {
     initialRun: trigger.initialRun,
     persistent: trigger.persistent,
     teardown: async () => {
+      console.log('TEARDOWN', outerActiveTask?.abortController);
+
       if (outerTeardownInitiated) {
         log.warn('teardown already initiated');
 
@@ -319,6 +327,10 @@ export const subscribe = (trigger: Trigger): Subscription => {
       }
 
       outerTeardownInitiated = true;
+
+      if (outerActiveTask?.abortController) {
+        await outerActiveTask.abortController.abort();
+      }
 
       if (trigger.onTeardown) {
         const taskId = generateShortId();

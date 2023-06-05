@@ -325,3 +325,36 @@ it('retries persistent routine if it exists with error', async () => {
 
   expect(onChange.callCount).toBeGreaterThan(2);
 });
+
+it('stops retrying persistent routine if teardown is called', async () => {
+  const trigger = {
+    ...defaultTrigger,
+    persistent: true,
+    retry: {
+      maxTimeout: 100,
+      retries: 1,
+    },
+  };
+
+  const onChange = sinon.stub(trigger, 'onChange');
+
+  onChange.resolves(async () => {
+    await wait(100);
+  });
+
+  const subscription = await subscribe(trigger);
+
+  void subscription.trigger([]);
+
+  await wait(500);
+
+  await subscription.teardown();
+
+  await wait(100);
+
+  const firstCallCount = onChange.callCount;
+
+  await wait(500);
+
+  expect(onChange.callCount).toBe(firstCallCount);
+});
