@@ -16,7 +16,15 @@ export const killPsTree = async (
   const pids = [rootPid, ...childPids];
 
   for (const pid of pids) {
-    process.kill(pid, 'SIGTERM');
+    try {
+      process.kill(pid, 'SIGTERM');
+    } catch (error) {
+      if (error.code === 'ESRCH') {
+        log.debug({ pid }, 'process already terminated');
+      } else {
+        throw error;
+      }
+    }
   }
 
   let hangingPids = [...pids];
@@ -29,7 +37,15 @@ export const killPsTree = async (
     log.debug({ hangingPids }, 'sending SIGKILL to processes...');
 
     for (const pid of hangingPids) {
-      process.kill(pid, 'SIGKILL');
+      try {
+        process.kill(pid, 'SIGKILL');
+      } catch (error) {
+        if (error.code === 'ESRCH') {
+          log.debug({ pid }, 'process already terminated');
+        } else {
+          throw error;
+        }
+      }
     }
   }, gracefulTimeout);
 
