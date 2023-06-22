@@ -21,8 +21,6 @@ jobs:
   test:
     environment: release
     name: Test
-    needs:
-      - lint
     runs-on: ${{ matrix.os }}
     steps:
       - name: setup repository
