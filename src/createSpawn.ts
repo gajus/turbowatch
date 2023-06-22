@@ -8,7 +8,6 @@ import { type Throttle } from './types';
 import chalk from 'chalk';
 import randomColor from 'randomcolor';
 import { throttle } from 'throttle-debounce';
-import { $ } from 'zx';
 
 const log = Logger.child({
   namespace: 'createSpawn',
@@ -68,6 +67,8 @@ export const createSpawn = (
 
   return async (pieces: TemplateStringsArray, ...args: any[]) => {
     const binPath = (await findNearestDirectory('node_modules', cwd)) + '/.bin';
+
+    const { $ } = await import('zx');
 
     $.cwd = cwd;
 
