@@ -11,9 +11,9 @@ export const killPsTree = async (
   rootPid: number,
   gracefulTimeout: number = 30_000,
 ) => {
-  const childPids = await pidTree(rootPid);
-
-  const pids = [rootPid, ...childPids];
+  const pids = await pidTree(rootPid, {
+    root: true,
+  });
 
   for (const pid of pids) {
     try {
