@@ -107,6 +107,7 @@ const runTask = async ({
           abortSignal: abortController?.signal,
           cwd: trigger.cwd,
           throttleOutput: trigger.throttleOutput,
+          triggerName: trigger.name,
         }),
         taskId,
       });
@@ -355,6 +356,7 @@ export const subscribe = (trigger: Trigger): Subscription => {
           await trigger.onTeardown({
             spawn: createSpawn(taskId, {
               throttleOutput: trigger.throttleOutput,
+              triggerName: trigger.name,
             }),
           });
         } catch (error) {
