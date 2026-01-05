@@ -12,7 +12,7 @@ jobs:
         uses: actions/setup-node@v2
         with:
           cache: 'npm'
-          node-version: '19'
+          node-version: '24'
       - run: npm ci
       - run: npm run lint:eslint
       - run: npm run lint:tsc
