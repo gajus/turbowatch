@@ -93,7 +93,10 @@ export const createSpawn = (
 
       const prefixTriggerName = triggerName ? triggerName + ' ' : '';
 
-      return prefixLines(content, colorText(`${prefixTriggerName}${taskId}`) + ' > ');
+      return prefixLines(
+        content,
+        colorText(`${prefixTriggerName}${taskId}`) + ' > ',
+      );
     };
 
     if (throttleOutput?.delay) {
