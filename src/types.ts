@@ -103,6 +103,7 @@ export type Throttle = {
  * @property hexColor Hex color code used for logging.
  * @property onChange Routine that is executed when file changes are detected.
  * @property persistent Label a task as persistent if it is a long-running process, such as a dev server or --watch mode.
+ * @property outputPrefix When false, disables prefixing output with trigger name and task ID. (default: true)
  */
 export type TriggerInput = {
   expression: Expression;
@@ -112,6 +113,7 @@ export type TriggerInput = {
   name: string;
   onChange: OnChangeEventHandler;
   onTeardown?: OnTeardownEventHandler;
+  outputPrefix?: boolean;
   persistent?: boolean;
   retry?: Retry;
   throttleOutput?: Throttle;
@@ -128,6 +130,7 @@ export type Trigger = {
   name: string;
   onChange: OnChangeEventHandler;
   onTeardown?: OnTeardownEventHandler;
+  outputPrefix: boolean;
   persistent: boolean;
   retry: Retry;
   throttleOutput: Throttle;

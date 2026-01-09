@@ -106,6 +106,7 @@ const runTask = async ({
         spawn: createSpawn(taskId, {
           abortSignal: abortController?.signal,
           cwd: trigger.cwd,
+          outputPrefix: trigger.outputPrefix,
           throttleOutput: trigger.throttleOutput,
           triggerHexColor: trigger.hexColor,
           triggerName: trigger.name,
@@ -356,6 +357,7 @@ export const subscribe = (trigger: Trigger): Subscription => {
         try {
           await trigger.onTeardown({
             spawn: createSpawn(taskId, {
+              outputPrefix: trigger.outputPrefix,
               throttleOutput: trigger.throttleOutput,
               triggerHexColor: trigger.hexColor,
               triggerName: trigger.name,

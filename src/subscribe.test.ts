@@ -13,6 +13,7 @@ const defaultTrigger = {
   name: 'foo',
   onChange: async () => {},
   onTeardown: async () => {},
+  outputPrefix: true,
   persistent: false,
   relativePath: 'foo',
   retry: {

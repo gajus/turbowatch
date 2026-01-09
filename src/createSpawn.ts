@@ -29,12 +29,14 @@ export const createSpawn = (
   {
     cwd = process.cwd(),
     abortSignal,
+    outputPrefix = true,
     throttleOutput,
     triggerName,
     triggerHexColor,
   }: {
     abortSignal?: AbortSignal;
     cwd?: string;
+    outputPrefix?: boolean;
     throttleOutput?: Throttle;
     triggerHexColor?: string;
     triggerName?: string;
@@ -83,12 +85,15 @@ export const createSpawn = (
     let onStderr: (chunk: Buffer) => void;
 
     const formatChunk = (chunk: Buffer) => {
+      const content = chunk.toString().trimEnd();
+
+      if (!outputPrefix) {
+        return content;
+      }
+
       const prefixTriggerName = triggerName ? triggerName + ' ' : '';
 
-      return prefixLines(
-        chunk.toString().trimEnd(),
-        colorText(`${prefixTriggerName}${taskId}`) + ' > ',
-      );
+      return prefixLines(content, colorText(`${prefixTriggerName}${taskId}`) + ' > ');
     };
 
     if (throttleOutput?.delay) {
