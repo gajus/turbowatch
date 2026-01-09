@@ -1,3 +1,6 @@
+permissions:
+  id-token: write
+  contents: read
 jobs:
   test:
     environment: release
