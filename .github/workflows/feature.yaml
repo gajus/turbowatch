@@ -22,7 +22,7 @@ jobs:
     name: Test
     needs:
       - lint
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-latest
     steps:
       - name: setup repository
         uses: actions/checkout@v2
@@ -31,19 +31,12 @@ jobs:
       - name: setup node.js
         uses: actions/setup-node@v2
         with:
-          node-version: ${{ matrix.version }}
+          node-version: '24'
       - run: npm ci
       - env:
           ROARR_LOG: 'true'
         run: npm run test:vitest
       - run: npm run build
-    strategy:
-      matrix:
-        os:
-          - ubuntu-latest
-        version:
-          - 18
-          - 19
     timeout-minutes: 10
 name: Test and build
 on:
